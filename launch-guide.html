@@ -1,0 +1,438 @@
+<title>Intelligence Base Launch Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+:root{
+  --ground:#f3f4f7; --surface:#ffffff; --surface-2:#eceef3; --sunk:#e4e7ee;
+  --ink:#14161c; --ink-2:#4d5563; --ink-3:#79808f;
+  --line:#d9dde6; --line-soft:#e7eaf1;
+  --accent:#1f5fd8; --accent-soft:#e5edfc;
+  --done:#0d6d6a; --done-soft:#dcefee;
+  --caution:#9a4d09; --caution-soft:#fbeedd;
+  --shadow:0 1px 2px rgba(20,22,28,.05), 0 10px 28px rgba(20,22,28,.06);
+  --rail:280px;
+  --sans:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0c0e13; --surface:#151922; --surface-2:#1c212c; --sunk:#10141b;
+    --ink:#e9ecf3; --ink-2:#a7aebc; --ink-3:#7d8493;
+    --line:#2a3040; --line-soft:#212734;
+    --accent:#79a8ff; --accent-soft:#17233b;
+    --done:#4ac9bf; --done-soft:#0f2b2a;
+    --caution:#e6a552; --caution-soft:#2e2314;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 34px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0c0e13; --surface:#151922; --surface-2:#1c212c; --sunk:#10141b;
+  --ink:#e9ecf3; --ink-2:#a7aebc; --ink-3:#7d8493;
+  --line:#2a3040; --line-soft:#212734;
+  --accent:#79a8ff; --accent-soft:#17233b;
+  --done:#4ac9bf; --done-soft:#0f2b2a;
+  --caution:#e6a552; --caution-soft:#2e2314;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 34px rgba(0,0,0,.45);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font:400 16px/1.62 var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0; text-wrap:balance}
+p{margin:0}
+a{color:var(--accent); text-underline-offset:3px}
+
+.page{max-width:1160px; margin:0 auto; padding:0 24px 96px}
+
+/* ---------- Masthead ---------- */
+.mast{padding:72px 0 34px; border-bottom:1px solid var(--line)}
+.eyebrow{
+  font-size:12px; font-weight:700; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--accent);
+}
+.mast h1{
+  font-family:var(--serif); font-optical-sizing:auto;
+  font-size:clamp(38px,6.4vw,68px); font-weight:600; line-height:1.02;
+  letter-spacing:-0.025em; margin:14px 0 0;
+}
+.mast .sub{
+  margin-top:18px; max-width:60ch; font-size:clamp(17px,1.7vw,20px);
+  line-height:1.55; color:var(--ink-2);
+}
+
+.facts{display:flex; flex-wrap:wrap; gap:1px; margin-top:36px;
+  background:var(--line-soft); border:1px solid var(--line-soft); border-radius:12px; overflow:hidden}
+.facts > div{flex:1 1 150px; background:var(--surface); padding:14px 18px}
+.facts .k{font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.facts .v{font-family:var(--serif); font-size:26px; font-weight:600; letter-spacing:-0.02em;
+  font-variant-numeric:tabular-nums; margin-top:2px}
+
+/* ---------- Two-column ---------- */
+.cols{display:grid; grid-template-columns:1fr; gap:44px; margin-top:44px}
+@media (min-width:1000px){
+  .cols{grid-template-columns:var(--rail) minmax(0,1fr); gap:56px; align-items:start}
+  .rail{position:sticky; top:24px}
+}
+
+.rail{
+  background:var(--surface); border:1px solid var(--line-soft); border-radius:14px;
+  padding:18px 18px 14px; box-shadow:var(--shadow);
+}
+.rail h2{font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3)}
+.meter{height:4px; border-radius:99px; background:var(--sunk); margin:12px 0 4px; overflow:hidden}
+.meter > i{display:block; height:100%; width:0; background:var(--done); border-radius:99px;
+  transition:width .34s cubic-bezier(.22,.61,.36,1)}
+.meter-txt{font-size:12px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+.rail ol{list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:2px}
+.rail li{display:flex; align-items:flex-start; gap:9px}
+.rail label{
+  display:flex; align-items:flex-start; gap:9px; cursor:pointer; width:100%;
+  padding:6px 8px; margin:0 -8px; border-radius:8px; font-size:13.5px; line-height:1.35;
+  color:var(--ink-2);
+}
+.rail label:hover{background:var(--surface-2); color:var(--ink)}
+.rail input{
+  appearance:none; flex:none; width:15px; height:15px; margin-top:2px;
+  border:1.5px solid var(--line); border-radius:5px; background:var(--surface); cursor:pointer;
+  transition:background .14s ease-out, border-color .14s ease-out;
+}
+.rail input:checked{background:var(--done); border-color:var(--done)}
+.rail input:checked + span{color:var(--ink-3); text-decoration:line-through}
+.rail input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+/* ---------- Steps ---------- */
+.step{
+  background:var(--surface); border:1px solid var(--line-soft); border-radius:16px;
+  padding:28px clamp(20px,3vw,34px); box-shadow:var(--shadow); margin-bottom:20px;
+  scroll-margin-top:20px;
+}
+.step-head{display:flex; align-items:baseline; gap:14px; margin-bottom:6px}
+.step-n{
+  font-family:var(--mono); font-size:12px; font-weight:600; color:var(--accent);
+  background:var(--accent-soft); padding:3px 8px; border-radius:6px; flex:none;
+  letter-spacing:.02em;
+}
+.step h2{font-family:var(--serif); font-size:clamp(23px,2.6vw,29px); font-weight:600; letter-spacing:-0.018em; line-height:1.15}
+.step > p, .step li{max-width:66ch}
+.step > p{margin-top:14px; color:var(--ink-2)}
+.step h3{font-size:14px; font-weight:700; letter-spacing:.01em; margin:24px 0 8px}
+
+ul.plain, ol.plain{margin:12px 0 0; padding-left:20px; color:var(--ink-2)}
+ul.plain li, ol.plain li{margin-bottom:8px}
+ul.plain li::marker{color:var(--ink-3)}
+strong{font-weight:600; color:var(--ink)}
+
+code{
+  font-family:var(--mono); font-size:.86em; background:var(--surface-2);
+  padding:1.5px 5px; border-radius:5px; border:1px solid var(--line-soft);
+  word-break:break-word;
+}
+
+.callout{
+  margin-top:20px; padding:15px 17px; border-radius:12px;
+  background:var(--accent-soft); border:1px solid color-mix(in oklab, var(--accent) 22%, transparent);
+  font-size:14.5px; line-height:1.55;
+}
+.callout.warn{background:var(--caution-soft); border-color:color-mix(in oklab, var(--caution) 30%, transparent)}
+.callout.good{background:var(--done-soft); border-color:color-mix(in oklab, var(--done) 26%, transparent)}
+.callout .lede{display:block; font-weight:700; font-size:12px; letter-spacing:.1em;
+  text-transform:uppercase; margin-bottom:5px}
+.callout .lede{color:var(--accent)}
+.callout.warn .lede{color:var(--caution)}
+.callout.good .lede{color:var(--done)}
+
+.tablewrap{overflow-x:auto; margin-top:18px; border:1px solid var(--line-soft); border-radius:12px}
+table{border-collapse:collapse; width:100%; min-width:520px; font-size:14px}
+th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--line-soft); vertical-align:top}
+thead th{
+  font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); background:var(--surface-2); border-bottom:1px solid var(--line);
+}
+tbody tr:last-child td{border-bottom:0}
+td.mono, .mono{font-family:var(--mono); font-size:13px; font-variant-numeric:tabular-nums}
+
+.copy{
+  font:inherit; font-family:var(--mono); font-size:13px;
+  background:transparent; border:0; padding:0; cursor:pointer; color:var(--ink);
+  text-align:left; border-bottom:1px dashed var(--line);
+}
+.copy:hover{color:var(--accent); border-bottom-color:var(--accent)}
+.copy.ok{color:var(--done); border-bottom-color:transparent}
+
+.pathline{
+  font-family:var(--mono); font-size:13px; background:var(--sunk);
+  border:1px solid var(--line-soft); border-radius:9px; padding:10px 13px; margin-top:12px;
+  overflow-x:auto; white-space:nowrap; color:var(--ink-2);
+}
+.pathline b{color:var(--ink); font-weight:600}
+
+.foot{margin-top:46px; padding-top:26px; border-top:1px solid var(--line); color:var(--ink-3); font-size:13.5px; max-width:70ch}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition-duration:.01ms !important; animation-duration:.01ms !important}
+}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:5px}
+</style>
+
+<div class="page">
+
+<header class="mast">
+  <div class="eyebrow">Setup guide · first time</div>
+  <h1>From nothing to a live site at your own address</h1>
+  <p class="sub">Eight steps, in order. Nothing here assumes you have done this before, and nothing here needs a paid host — the only recurring cost is the name itself.</p>
+  <div class="facts">
+    <div><div class="k">Domain</div><div class="v">~$11<span style="font-size:14px;color:var(--ink-3)">/yr</span></div></div>
+    <div><div class="k">Hosting</div><div class="v">$0</div></div>
+    <div><div class="k">HTTPS</div><div class="v">$0</div></div>
+    <div><div class="k">First launch</div><div class="v">~45 min</div></div>
+    <div><div class="k">DNS wait</div><div class="v">≤24 h</div></div>
+  </div>
+</header>
+
+<div class="cols">
+
+  <aside class="rail">
+    <h2>Progress</h2>
+    <div class="meter"><i id="meterFill"></i></div>
+    <div class="meter-txt" id="meterTxt">0 of 8 done</div>
+    <ol id="railList"></ol>
+  </aside>
+
+  <main>
+
+  <!-- 1 -->
+  <section class="step" id="s1">
+    <div class="step-head"><span class="step-n">01</span><h2>Know what you are actually buying</h2></div>
+    <p>Three separate things get muddled together by every hosting advert you will see. Keeping them apart is what stops you overpaying.</p>
+    <ol class="plain">
+      <li><strong>The domain name</strong> — the address people type. You rent it yearly from a registrar. Around US$11/year for a <code>.com</code>. This is the only thing you must pay for.</li>
+      <li><strong>The hosting</strong> — the machine that serves the files. GitHub Pages does this free for static sites like yours, including the HTTPS certificate.</li>
+      <li><strong>The site itself</strong> — the files. Already built. It is plain HTML, CSS and JavaScript with no server and no database, which is exactly why the hosting is free.</li>
+    </ol>
+    <div class="callout"><span class="lede">The one thing to internalise</span>
+      A domain is <em>rented</em>, not owned. If the card on file expires and the renewal fails, the name goes back on the market and someone else can take it. Turn on auto-renew and keep the card current.</div>
+  </section>
+
+  <!-- 2 -->
+  <section class="step" id="s2">
+    <div class="step-head"><span class="step-n">02</span><h2>Choose the name</h2></div>
+    <p>Pick something you will still be comfortable putting on a CV in ten years. Personal names age better than clever project names, because the project will change and you will not.</p>
+    <h3>Reasonable candidates for you</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Pattern</th><th>Example</th><th>Reads as</th></tr></thead>
+      <tbody>
+        <tr><td>First + last name</td><td class="mono">jiaheng.com</td><td>The durable default. Works for any future role.</td></tr>
+        <tr><td>Name + country</td><td class="mono">jiaheng.sg</td><td>Credible locally; signals you are based in Singapore.</td></tr>
+        <tr><td>Name + initial</td><td class="mono">jayheng.co</td><td>Good fallback when the plain name is taken.</td></tr>
+        <tr><td>Subject name</td><td class="mono">intelligencebase.io</td><td>Fine if the site outgrows you — riskier if it does not.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Rules that save money and embarrassment</h3>
+    <ul class="plain">
+      <li><strong>Check the renewal price, not the first-year price.</strong> A $1 first year with a $40 renewal is the standard trap. <code>.io</code> and <code>.ai</code> renew expensively; <code>.com</code>, <code>.co</code> and <code>.sg</code> are stable.</li>
+      <li><strong>No hyphens, no numbers.</strong> You will have to read the address out loud eventually.</li>
+      <li><strong>Say it out loud once.</strong> If it needs spelling, pick another.</li>
+      <li><strong><code>.sg</code> has a catch.</strong> It requires a Singapore presence and identity verification through an SGNIC-accredited registrar. Fine for you, slower to register than a <code>.com</code>.</li>
+    </ul>
+  </section>
+
+  <!-- 3 -->
+  <section class="step" id="s3">
+    <div class="step-head"><span class="step-n">03</span><h2>Register it</h2></div>
+    <p>Any of these three is a sound choice. All include WHOIS privacy free, which keeps your name, address and phone out of the public registry — worth having on by default.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Registrar</th><th>.com, per year</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Cloudflare Registrar</strong></td><td class="mono">~$10.44 flat</td><td>Sold at cost, no renewal jump ever. You must use Cloudflare's nameservers — which is fine here, and gives you a good DNS panel for free.</td></tr>
+        <tr><td><strong>Porkbun</strong></td><td class="mono">~$10.99 flat</td><td>Same price in and out, no nameserver requirement, clean interface. The easy default.</td></tr>
+        <tr><td><strong>Namecheap</strong></td><td class="mono">~$6 then ~$14</td><td>Cheap first year, dearer after. Widely used and reliable; just know the renewal number.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><span class="lede">Skip the upsells</span>
+      At checkout you will be offered hosting, email, SSL, "site protection" and premium DNS. You need none of them — GitHub Pages provides the hosting and the certificate. Buy the domain and nothing else.</div>
+    <h3>Before you close the tab</h3>
+    <ul class="plain">
+      <li>Turn <strong>auto-renew on</strong>.</li>
+      <li>Turn <strong>WHOIS privacy on</strong> (usually on by default at all three).</li>
+      <li>Turn <strong>two-factor authentication on</strong>. Your registrar account is the single point of failure for the whole site.</li>
+      <li>Confirm the verification email the registry sends. Ignore it for 15 days and the domain gets suspended.</li>
+    </ul>
+  </section>
+
+  <!-- 4 -->
+  <section class="step" id="s4">
+    <div class="step-head"><span class="step-n">04</span><h2>Put the files on GitHub</h2></div>
+    <p>GitHub is where the files live. You do not need to learn Git for this — the whole thing can be done by dragging files into a browser window.</p>
+    <ol class="plain">
+      <li>Create a free account at <a href="https://github.com/signup" rel="noopener">github.com/signup</a>, verify the email, and turn on two-factor authentication.</li>
+      <li>Click <strong>New repository</strong>. Name it <code>site</code>. Set it to <strong>Public</strong> — Pages is free only on public repositories. Leave everything else alone and create it.</li>
+      <li>On the empty repository page, click <strong>uploading an existing file</strong>.</li>
+      <li>Unzip the site folder on your machine, then drag <em>the contents</em> in — <code>index.html</code>, the <code>assets</code> folder, <code>.nojekyll</code>, <code>tools</code>. Not the outer folder itself: <code>index.html</code> must sit at the top level of the repository.</li>
+      <li>Click <strong>Commit changes</strong>.</li>
+    </ol>
+    <div class="pathline">Repository root → <b>index.html</b> &nbsp;·&nbsp; <b>assets/</b> &nbsp;·&nbsp; <b>.nojekyll</b> &nbsp;·&nbsp; <b>tools/</b> &nbsp;·&nbsp; <b>README.md</b></div>
+    <div class="callout"><span class="lede">Why .nojekyll</span>
+      GitHub runs a blog engine over Pages sites by default and quietly skips files and folders starting with an underscore. The empty <code>.nojekyll</code> file turns that off. It is already in the folder — make sure it uploads.</div>
+  </section>
+
+  <!-- 5 -->
+  <section class="step" id="s5">
+    <div class="step-head"><span class="step-n">05</span><h2>Switch the hosting on</h2></div>
+    <ol class="plain">
+      <li>In the repository, go to <strong>Settings → Pages</strong>.</li>
+      <li>Under <em>Build and deployment</em>, set <strong>Source</strong> to <strong>Deploy from a branch</strong>.</li>
+      <li>Set the branch to <strong>main</strong> and the folder to <strong>/ (root)</strong>. Save.</li>
+      <li>Wait about a minute, then reload the page. A green banner appears with your live URL.</li>
+    </ol>
+    <div class="pathline">https://<b>&lt;your-username&gt;</b>.github.io/<b>site</b>/</div>
+    <div class="callout good"><span class="lede">Checkpoint</span>
+      Open that URL. The site should load exactly as it does locally. If it does, hosting is done and everything that follows is only about the address.</div>
+  </section>
+
+  <!-- 6 -->
+  <section class="step" id="s6">
+    <div class="step-head"><span class="step-n">06</span><h2>Point the domain at it</h2></div>
+    <p>Two halves, and they must both be done: tell GitHub which name to answer to, and tell the name where to find GitHub.</p>
+
+    <h3>Half one — tell GitHub</h3>
+    <p>In <strong>Settings → Pages → Custom domain</strong>, enter <code>www.yourdomain.com</code> and save. GitHub writes a file called <code>CNAME</code> into the repository. Leave that file alone; deleting it disconnects the domain.</p>
+
+    <h3>Half two — tell the domain</h3>
+    <p>In your registrar's DNS panel, add these records. Click any value to copy it.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Type</th><th>Name / host</th><th>Value</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">A</td><td class="mono">@</td><td><button class="copy">185.199.108.153</button></td><td rowspan="4">The four IPv4 addresses GitHub Pages answers on. Add all four — they are load-balanced, not alternatives.</td></tr>
+        <tr><td class="mono">A</td><td class="mono">@</td><td><button class="copy">185.199.109.153</button></td></tr>
+        <tr><td class="mono">A</td><td class="mono">@</td><td><button class="copy">185.199.110.153</button></td></tr>
+        <tr><td class="mono">A</td><td class="mono">@</td><td><button class="copy">185.199.111.153</button></td></tr>
+        <tr><td class="mono">CNAME</td><td class="mono">www</td><td><button class="copy">YOUR-USERNAME.github.io</button></td><td>Sends <code>www</code> to your Pages site. Note the trailing <code>.github.io</code> and <strong>no repository name</strong>.</td></tr>
+        <tr><td class="mono">AAAA</td><td class="mono">@</td><td><button class="copy">2606:50c0:8000::153</button></td><td rowspan="4">Optional IPv6. Add all four if your panel supports AAAA; skip the set entirely if it does not.</td></tr>
+        <tr><td class="mono">AAAA</td><td class="mono">@</td><td><button class="copy">2606:50c0:8001::153</button></td></tr>
+        <tr><td class="mono">AAAA</td><td class="mono">@</td><td><button class="copy">2606:50c0:8002::153</button></td></tr>
+        <tr><td class="mono">AAAA</td><td class="mono">@</td><td><button class="copy">2606:50c0:8003::153</button></td></tr>
+      </tbody>
+    </table></div>
+    <p style="margin-top:16px"><code>@</code> means the bare domain (<code>yourdomain.com</code>). Some panels want it written as the domain itself or left blank — the panel's own help text will say which.</p>
+    <div class="callout warn"><span class="lede">Now wait</span>
+      DNS changes can take up to 24 hours to spread, though 10–30 minutes is typical. GitHub will show an amber "domain does not resolve" warning during this window. That is expected — do not change anything, and do not re-enter the domain repeatedly.</div>
+  </section>
+
+  <!-- 7 -->
+  <section class="step" id="s7">
+    <div class="step-head"><span class="step-n">07</span><h2>Turn on HTTPS and check the result</h2></div>
+    <ol class="plain">
+      <li>Once the warning clears, return to <strong>Settings → Pages</strong> and tick <strong>Enforce HTTPS</strong>. The certificate is issued automatically and free; the tick box can take up to 24 hours to become available.</li>
+      <li>Visit all four forms and confirm each lands on the site: <code>yourdomain.com</code>, <code>www.yourdomain.com</code>, and both with <code>https://</code>.</li>
+      <li>Open it on your phone. Check the map pans, a country sheet opens and drags closed, and nothing scrolls sideways.</li>
+      <li>Switch your phone between light and dark mode and reload.</li>
+    </ol>
+    <div class="callout good"><span class="lede">You are live</span>
+      At this point the site is public and shareable. Everything after this is maintenance.</div>
+  </section>
+
+  <!-- 8 -->
+  <section class="step" id="s8">
+    <div class="step-head"><span class="step-n">08</span><h2>Change it later without breaking it</h2></div>
+    <p>Every piece of content on the site comes from one file: <code>assets/js/data.js</code>. Adding a market, a strategy or an event is editing one object in it.</p>
+    <ol class="plain">
+      <li>In GitHub, open <code>assets/js/data.js</code> and click the pencil icon.</li>
+      <li>Edit. Keep the commas and braces exactly as they are — a stray comma is the one thing that will blank the page.</li>
+      <li><strong>Commit changes</strong>. The live site updates in roughly 30 seconds.</li>
+      <li>If it looks unchanged, hard-refresh: <code>Cmd/Ctrl + Shift + R</code>.</li>
+    </ol>
+    <div class="callout"><span class="lede">The undo you actually have</span>
+      Every commit is a restore point. If an edit breaks the page, open the repository's <strong>Commits</strong> tab, find the last good one, and revert it. Nothing you do here is unrecoverable.</div>
+  </section>
+
+  <!-- Troubleshooting -->
+  <section class="step" id="tr">
+    <div class="step-head"><span class="step-n">FIX</span><h2>When it does not work</h2></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>What you see</th><th>What it means</th><th>What to do</th></tr></thead>
+      <tbody>
+        <tr><td>404 at the github.io URL</td><td>No <code>index.html</code> at the repository root</td><td>Check the file list. If everything sits inside a subfolder, move <code>index.html</code> and <code>assets</code> up one level.</td></tr>
+        <tr><td>"Domain does not resolve to the GitHub Pages server"</td><td>DNS has not propagated, or a record is wrong</td><td>Wait 30 minutes first. Then re-check the four A records and that the CNAME value has no repository name in it.</td></tr>
+        <tr><td>"Enforce HTTPS" is greyed out</td><td>The certificate has not been issued yet</td><td>Wait. It needs DNS to be correct and can take up to 24 hours. Nothing to fix.</td></tr>
+        <tr><td>Site loads, page is blank</td><td>A JavaScript error, almost always a typo in <code>data.js</code></td><td>Open the browser console (F12). It names the line. Or revert the last commit.</td></tr>
+        <tr><td>Domain worked, then stopped</td><td>The <code>CNAME</code> file was deleted by a later upload</td><td>Re-enter the custom domain in Settings → Pages.</td></tr>
+        <tr><td>Map is blank, everything else fine</td><td><code>assets/js/world.js</code> did not upload</td><td>It is a large file. Re-upload it on its own.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <!-- Alternatives + compliance -->
+  <section class="step" id="alt">
+    <div class="step-head"><span class="step-n">ALT</span><h2>If you would rather not use GitHub</h2></div>
+    <p>Two equally free alternatives, both of which take a drag-and-drop of the site folder and give you a live URL in under a minute:</p>
+    <ul class="plain">
+      <li><strong>Netlify Drop</strong> — drag the folder onto <a href="https://app.netlify.com/drop" rel="noopener">app.netlify.com/drop</a>. Custom domain and HTTPS are in the site settings. Simplest possible path.</li>
+      <li><strong>Cloudflare Pages</strong> — the same idea, and if your domain is already at Cloudflare the DNS is filled in for you.</li>
+    </ul>
+    <p style="margin-top:14px">The DNS records differ slightly between hosts, but every step above maps one-to-one. Avoid shared cPanel hosting and WordPress plans for this site — you would be paying monthly for a database you do not have.</p>
+
+    <div class="callout warn"><span class="lede">One thing worth checking first</span>
+      You work at a regulated firm in Singapore. Most banks and asset managers have an outside-business-activity or personal-publication policy that covers a public site discussing markets, even a personal one. Check with compliance before you point the domain at it — a five-minute email now is much cheaper than taking it down later. The site already carries a "personal research, not investment advice, not the views of any employer" line in the footer; that helps, but it is not a substitute for asking.</div>
+  </section>
+
+  <p class="foot">Prices are current as of August 2026 and move around; the GitHub Pages IP addresses have been stable for years but are worth re-checking against GitHub's own documentation if a record ever stops resolving. Ticks on the left are saved in this browser only.</p>
+
+  </main>
+</div>
+</div>
+
+<script>
+(() => {
+  const STEPS = [
+    ["s1","Understand the three costs"],
+    ["s2","Choose the name"],
+    ["s3","Register the domain"],
+    ["s4","Upload the files to GitHub"],
+    ["s5","Switch on GitHub Pages"],
+    ["s6","Add the DNS records"],
+    ["s7","Enforce HTTPS and test"],
+    ["s8","Learn the edit loop"]
+  ];
+  const KEY = "ib-launch-progress";
+  const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; } };
+  const save = (v) => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch {} };
+
+  let done = load();
+  const list = document.getElementById("railList");
+  list.innerHTML = STEPS.map(([id, label], i) =>
+    `<li><label><input type="checkbox" data-i="${i}"${done.includes(i) ? " checked" : ""}>
+      <span><a href="#${id}" style="color:inherit;text-decoration:none">${label}</a></span></label></li>`).join("");
+
+  const fill = document.getElementById("meterFill");
+  const txt  = document.getElementById("meterTxt");
+  function paint() {
+    fill.style.width = (done.length / STEPS.length * 100).toFixed(1) + "%";
+    txt.textContent = done.length + " of " + STEPS.length + " done";
+  }
+  list.addEventListener("change", (e) => {
+    const i = Number(e.target.dataset.i);
+    done = e.target.checked ? [...new Set([...done, i])] : done.filter((x) => x !== i);
+    save(done); paint();
+  });
+  paint();
+
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest(".copy");
+    if (!b) return;
+    const text = b.textContent.trim();
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch {}
+    if (!ok) { const r = document.createRange(); r.selectNodeContents(b);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); return; }
+    const old = b.textContent;
+    b.textContent = "Copied"; b.classList.add("ok");
+    setTimeout(() => { b.textContent = old; b.classList.remove("ok"); }, 1100);
+  });
+})();
+</script>

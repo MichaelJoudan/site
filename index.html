@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Intelligence Base</title>
+<meta name="description" content="A working intelligence base for multi-asset markets: derivative strategy notes, a cross-asset interaction grid, and an interactive world atlas of market structure.">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="Intelligence Base">
+<meta property="og:description" content="Multi-asset market structure, derivative strategy notes and an interactive world atlas.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230a6cff'/><circle cx='16' cy='16' r='7' fill='none' stroke='white' stroke-width='2.4'/><path d='M9 16h14M16 9c3.2 3.6 3.2 10.4 0 14M16 9c-3.2 3.6-3.2 10.4 0 14' stroke='white' stroke-width='1.6' fill='none'/></svg>">
+<link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body>
+<div class="field" aria-hidden="true"></div>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="chrome">
+  <div class="chrome-in">
+    <a class="mark" href="#/base"><span class="mark-dot"></span><span data-fill="owner">—</span></a>
+    <nav class="seg" aria-label="Sections">
+      <span class="seg-pill" aria-hidden="true"></span>
+      <a href="#/base"       data-route="base">Base</a>
+      <a href="#/strategies" data-route="strategies">Strategies</a>
+      <a href="#/signals"    data-route="signals">Signals</a>
+      <a href="#/atlas"      data-route="atlas">Atlas</a>
+    </nav>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Theme" title="Light / dark / system">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ══════════════════ BASE ══════════════════ -->
+<section class="route" id="route-base">
+  <div class="wrap hero">
+    <div class="t-label" data-fill="role">—</div>
+    <h1 style="margin-top:0.7rem">Markets are one<br>system, not twelve.</h1>
+    <p class="t-lede" data-fill="tagline">—</p>
+    <div class="hero-actions">
+      <a class="btn" href="#/atlas" data-goto="atlas">Open the atlas</a>
+      <a class="btn btn-quiet" href="#/strategies" data-goto="strategies">See the strategy shelf</a>
+    </div>
+    <div class="statbar" id="statbar"></div>
+  </div>
+
+  <div class="wrap section">
+    <div class="section-head">
+      <h2>Three views of the same thing</h2>
+      <p class="t-body">Each section answers a different question about the same market. Start anywhere.</p>
+    </div>
+    <div class="grid grid-3">
+      <article class="card pad tap reveal" data-goto="strategies" tabindex="0" role="link">
+        <div class="t-label">01 · Strategies</div>
+        <h3 class="t-head" style="margin:0.5rem 0 0.4rem">What I can build</h3>
+        <p class="t-body" style="margin:0;font-size:0.9375rem">Derivative and structured-product work written up honestly — the thesis, the mechanics, and the part that hurts when it goes wrong.</p>
+      </article>
+      <article class="card pad tap reveal" data-goto="signals" tabindex="0" role="link">
+        <div class="t-label">02 · Signals</div>
+        <h3 class="t-head" style="margin:0.5rem 0 0.4rem">How things move together</h3>
+        <p class="t-body" style="margin:0;font-size:0.9375rem">A cross-asset interaction grid plus a running log of what the world did and what it actually implies for positioning.</p>
+      </article>
+      <article class="card pad tap reveal" data-goto="atlas" tabindex="0" role="link">
+        <div class="t-label">03 · Atlas</div>
+        <h3 class="t-head" style="margin:0.5rem 0 0.4rem">Where the risk lives</h3>
+        <p class="t-body" style="margin:0;font-size:0.9375rem">Every major market on one map — cap, macro, sector mix and the five companies that dominate it.</p>
+      </article>
+    </div>
+  </div>
+
+  <div class="wrap section">
+    <div class="card pad reveal">
+      <h2 class="t-title">How this is built</h2>
+      <p class="t-body" style="max-width:64ch">One static page, no framework, no backend. All content lives in a single data file, so adding a market or a strategy is one object, not a deploy pipeline. Motion is spring-driven and interruptible; everything respects reduced-motion, reduced-transparency and high-contrast settings.</p>
+      <div class="strat-meta" style="margin-top:1rem">
+        <span class="chip">Vanilla JS</span><span class="chip">No build step</span>
+        <span class="chip">Static hosting</span><span class="chip">Light &amp; dark</span>
+        <span class="chip">Keyboard accessible</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ STRATEGIES ══════════════════ -->
+<section class="route" id="route-strategies">
+  <div class="wrap section" style="padding-top:clamp(2rem,6vw,4rem)">
+    <div class="section-head">
+      <div class="t-label">The shelf</div>
+      <h2 style="margin-top:0.5rem">Strategies, and where each one breaks</h2>
+      <p class="t-body">Every strategy here is written with its failure mode attached. A payoff you cannot describe losing money is a payoff you do not understand. Tap any card for the mechanics.</p>
+    </div>
+    <div class="grid grid-2" id="stratGrid"></div>
+  </div>
+
+  <div class="wrap section" style="padding-top:0">
+    <div class="card pad reveal">
+      <div class="t-label">Capability surface</div>
+      <h2 class="t-title" style="margin:0.5rem 0 1.4rem">What I actually work in</h2>
+      <div class="skillrow" id="skillList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ SIGNALS ══════════════════ -->
+<section class="route" id="route-signals">
+  <div class="wrap section" style="padding-top:clamp(2rem,6vw,4rem)">
+    <div class="section-head">
+      <div class="t-label">Cross-asset interaction</div>
+      <h2 style="margin-top:0.5rem">The heat map</h2>
+      <p class="t-body">Correlation of daily returns across the assets that actually drive a multi-asset book. The number matters less than the sign changes — those mark regime shifts.</p>
+    </div>
+
+    <div class="card pad reveal">
+      <div class="heat-scroll"><table class="heat" id="heatTable"></table></div>
+      <div class="legend">
+        <span class="t-caption">−1</span>
+        <span class="swatches" id="heatLegend"></span>
+        <span class="t-caption">+1</span>
+        <span class="t-caption" style="margin-left:auto" id="heatWindow"></span>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:1rem">
+      <div class="card pad reveal">
+        <div class="t-label">What the grid is saying</div>
+        <ul id="heatReads" style="margin:0.8rem 0 0;padding-left:1.1rem"></ul>
+      </div>
+      <div class="card pad reveal">
+        <div class="t-label">How to read it</div>
+        <p class="t-body" style="font-size:0.9375rem">A correlation grid is a picture of what the market currently believes the shared risk factor is. When equity–rates flips sign, the driver has moved between growth and inflation. When credit stops confirming equity, the marginal buyer has changed. When everything converges toward one, diversification is gone precisely when it was needed.</p>
+        <p class="t-caption" style="margin-bottom:0">Seed values shown. Regenerate the matrix from your own price history with <code>tools/build_correlations.py</code>.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap section" style="padding-top:0">
+    <div class="section-head">
+      <div class="t-label">Running log</div>
+      <h2 style="margin-top:0.5rem">World events, and what they change</h2>
+      <p class="t-body">Append-only. Each entry pairs what happened with the positioning consequence — the second part is the point.</p>
+    </div>
+    <ul class="tl" id="eventList"></ul>
+  </div>
+</section>
+
+<!-- ══════════════════ ATLAS ══════════════════ -->
+<section class="route" id="route-atlas">
+  <div class="wrap section" style="padding-top:clamp(2rem,6vw,3rem)">
+    <div class="section-head">
+      <div class="t-label">World atlas</div>
+      <h2 style="margin-top:0.5rem">Every market, one surface</h2>
+      <p class="t-body">Colour by any metric. Tap a country for its macro picture, the sector composition of its benchmark, and the five companies that dominate it. Drag to pan, scroll or pinch to zoom.</p>
+    </div>
+
+    <div class="atlas-shell reveal">
+      <div class="map-frame">
+        <svg id="map" viewBox="0 0 1000 520" role="img" aria-label="World map coloured by the selected market metric"></svg>
+        <div class="map-toolbar"><div class="metric-seg" id="metricSeg" role="group" aria-label="Map metric"></div></div>
+        <div class="map-legend">
+          <div class="t-label" id="legendLabel">—</div>
+          <div class="swatches" id="legendSwatches" style="display:flex;border-radius:4px;overflow:hidden;margin:0.35rem 0 0.25rem"></div>
+          <div class="t-caption num" id="legendRange">—</div>
+        </div>
+        <div class="map-zoom">
+          <button class="icon-btn" id="zoomIn"    type="button" aria-label="Zoom in">＋</button>
+          <button class="icon-btn" id="zoomOut"   type="button" aria-label="Zoom out">－</button>
+          <button class="icon-btn" id="zoomReset" type="button" aria-label="Reset view">⤢</button>
+        </div>
+        <div class="map-tip" id="mapTip" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:1.1rem" id="countryList"></div>
+    <p class="t-caption" style="margin-top:1.2rem;max-width:70ch" data-fill="disclaimer"></p>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <div>
+      <div class="mark" style="margin-bottom:0.4rem"><span class="mark-dot"></span><span data-fill="owner">—</span></div>
+      <div class="t-caption">Snapshot as of <span data-fill="asof">—</span>. Personal research, not investment advice.</div>
+    </div>
+    <div id="footLinks" class="t-caption"></div>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Detail" aria-hidden="true">
+  <div class="sheet-grip"><i></i></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</aside>
+
+<!-- Order matters: data → geometry → feature modules → shell (app.js boots last). -->
+<script src="assets/js/data.js"></script>
+<script src="assets/js/world.js"></script>
+<script src="assets/js/heat.js"></script>
+<script src="assets/js/atlas.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
