@@ -4,6 +4,9 @@
    Motion follows Apple's fluid-interface model:
    springs (not durations), started from the current on-screen value,
    inheriting pointer velocity, interruptible at any frame.
+
+   Language: data.js holds English; i18n.js holds the Chinese overrides.
+   Anything untranslated falls back to English rather than going blank.
    ============================================================ */
 (() => {
   "use strict";
@@ -11,6 +14,8 @@
   const $  = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const t  = (p, f) => window.t(p, f);
+  const tm = (g, k, f) => window.tm(g, k, f);
 
   /* ---------- Spring ------------------------------------------------
      Apple's two designer parameters:
@@ -26,7 +31,6 @@
       this.raf = 0; this.last = 0;
     }
     set(x) { this.x = x; this.v = 0; this.target = x; this.emit(); }
-    // Retarget from the presentation value, carrying velocity through.
     to(target, { velocity, damping, response } = {}) {
       this.target = target;
       if (velocity !== undefined) this.v = velocity;
@@ -41,7 +45,7 @@
       const tick = (now) => {
         const dt = Math.min((now - this.last) / 1000, 1 / 30);
         this.last = now;
-        const w = (2 * Math.PI) / this.response;            // natural frequency
+        const w = (2 * Math.PI) / this.response;
         const a = -w * w * (this.x - this.target) - 2 * this.damping * w * this.v;
         this.v += a * dt;
         this.x += this.v * dt;
@@ -60,14 +64,9 @@
   }
   window.Spring = Spring;
 
-  /* Momentum projection — where a flick is *going*, not where it stopped. */
   const project = (v, d = 0.998) => (v / 1000) * d / (1 - d);
-  window.projectMomentum = project;
-
-  /* Rubber-band resistance past a boundary. */
   const rubberband = (over, dim, c = 0.55) => (over * dim * c) / (dim + c * Math.abs(over));
 
-  /* Velocity tracker — a short history, not just the last point. */
   class VelocityTracker {
     constructor() { this.pts = []; }
     add(v) { const t = performance.now(); this.pts.push([t, v]); if (this.pts.length > 6) this.pts.shift(); }
@@ -83,38 +82,134 @@
 
   /* ---------- Press feedback: on pointer-DOWN, never on release ---------- */
   document.addEventListener("pointerdown", (e) => {
-    const t = e.target.closest(".tap");
-    if (!t) return;
-    t.classList.add("is-pressed");
-    const off = () => { t.classList.remove("is-pressed"); };
-    t.addEventListener("pointerup", off, { once: true });
-    t.addEventListener("pointercancel", off, { once: true });
-    t.addEventListener("pointerleave", off, { once: true });
+    const el = e.target.closest(".tap, .door");
+    if (!el) return;
+    el.classList.add("is-pressed");
+    const off = () => el.classList.remove("is-pressed");
+    el.addEventListener("pointerup", off, { once: true });
+    el.addEventListener("pointercancel", off, { once: true });
+    el.addEventListener("pointerleave", off, { once: true });
   }, { passive: true });
 
+  /* ---------- Language switch ---------------------------------------
+     Two instances — one in the chrome, one floating on the gate.
+     Same segmented grammar as the section nav, same spring.           */
+  function buildLangSwitches() {
+    $$("[data-lang-switch]").forEach((host) => {
+      if (host.dataset.built) return;
+      host.dataset.built = "1";
+      host.innerHTML = '<span class="lang-pill" aria-hidden="true"></span>' +
+        window.I18N.langs.map(([code, label]) =>
+          `<button type="button" data-lang="${code}" lang="${code === "zh" ? "zh-Hans" : "en"}"
+             aria-pressed="${code === window.LANG}">${label}</button>`).join("");
+      const pill = $(".lang-pill", host);
+      host._pill = pill;
+      host._spring = new Spring({ damping: 1.0, response: 0.32,
+        onFrame: (x) => { pill.style.transform = `translate3d(${x}px,0,0)`; } });
+      host._first = true;
+    });
+  }
+  function syncLangSwitches() {
+    $$("[data-lang-switch]").forEach((host) => {
+      const btns = $$("button", host);
+      btns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === window.LANG)));
+      const active = btns.find((b) => b.dataset.lang === window.LANG);
+      if (!active || !host._pill) return;
+      const r = active.getBoundingClientRect(), h = host.getBoundingClientRect();
+      if (!r.width) return;                       // hidden route — measured when shown
+      host._pill.style.width = r.width + "px";
+      const x = r.left - h.left;
+      if (host._first) { host._spring.set(x); host._first = false; }
+      else host._spring.to(x);
+    });
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-lang-switch] button");
+    if (b) window.setLang(b.dataset.lang);
+  });
+
+  /* ---------- Static copy -------------------------------------------
+     The English in index.html is the fallback; we cache it once so a
+     switch back to English restores the original exactly.            */
+  const EN = new Map();
+  function applyStatic() {
+    $$("[data-i18n]").forEach((n) => {
+      if (!EN.has(n)) EN.set(n, n.textContent);
+      n.textContent = t("ui." + n.dataset.i18n, EN.get(n));
+    });
+    $$("[data-i18n-html]").forEach((n) => {
+      if (!EN.has(n)) EN.set(n, n.innerHTML);
+      n.innerHTML = t("ui." + n.dataset.i18nHtml, EN.get(n));
+    });
+    const mark = $("#chromeMark");
+    if (mark) mark.title = t("ui.back", "Back to the front");
+    ["zoomIn:Zoom in", "zoomOut:Zoom out", "zoomReset:Reset view"].forEach((pair) => {
+      const [id, en] = pair.split(":");
+      const el = $("#" + id);
+      if (el) el.setAttribute("aria-label", t("ui." + id, en));
+    });
+  }
+
+  const asof = () => t("meta.asof", window.META.asof);
+
+  function fillDynamic() {
+    const M = window.META;
+    const FILL = {
+      owner: M.owner,
+      tagline: t("meta.tagline", M.tagline),
+      asof: asof(),
+      role: t("meta.role", M.role) + " · " + t("meta.city", M.city),
+      footnote: window.LANG === "zh"
+        ? t("ui.footSnapshot", "") + asof() + t("ui.footRest", "")
+        : "Snapshot as of " + asof() + ". Personal research, not investment advice.",
+      disclaimer: window.LANG === "zh"
+        ? t("disclaimerParts.0", "") + asof() + t("disclaimerParts.1", "")
+        : window.DISCLAIMER,
+      "gate-eyebrow": t("gate.eyebrow", window.GATE.eyebrow),
+      "gate-title":   t("gate.title",   window.GATE.title),
+      "gate-sub":     t("gate.sub",     window.GATE.sub),
+      "gate-foot":    t("gate.foot",    window.GATE.foot),
+      "anna-eyebrow": t("anna.eyebrow", window.ANNA.eyebrow),
+      "anna-title":   t("anna.title",   window.ANNA.title),
+      "anna-lede":    t("anna.lede",    window.ANNA.lede)
+    };
+    for (const k in FILL) $$(`[data-fill='${k}']`).forEach((n) => (n.textContent = FILL[k]));
+
+    const links = $("#footLinks");
+    if (links) {
+      const L = [];
+      if (window.META.email) L.push(`<a href="mailto:${window.META.email}">Email</a>`);
+      if (window.META.linkedin) L.push(`<a href="${window.META.linkedin}" rel="me noopener">LinkedIn</a>`);
+      if (window.META.github) L.push(`<a href="${window.META.github}" rel="me noopener">GitHub</a>`);
+      links.innerHTML = L.join('<span class="t-caption"> · </span>') ||
+        `<span class="t-caption">${t("ui.footLinksEmpty", "Add your links in assets/js/data.js")}</span>`;
+    }
+  }
+
   /* ---------- Nav: spring-driven segmented pill ---------- */
-  const seg = $(".seg"), pill = $(".seg-pill");
-  const pillX = new Spring({ damping: 1.0, response: 0.34, onFrame: (x) => {
-    pill.style.transform = `translate3d(${x}px,0,0)`;
-  }});
+  const seg = $("#seg"), pill = $(".seg-pill");
+  const pillX = new Spring({ damping: 1.0, response: 0.34,
+    onFrame: (x) => { pill.style.transform = `translate3d(${x}px,0,0)`; } });
   let pillReady = false;
   function movePill(link, instant) {
     if (!seg || !pill || !link) return;
     const r = link.getBoundingClientRect(), b = seg.getBoundingClientRect();
+    if (!r.width) return;
     pill.style.width = r.width + "px";
     const x = r.left - b.left;
     if (instant || !pillReady) { pillX.set(x); pillReady = true; } else { pillX.to(x); }
   }
 
-  /* ---------- Routing (hash) ------------------------------------
-     "" / "#/"  → the gate
-     jay's side → base | strategies | signals | atlas
-     anna's side → anna                                            */
+  /* ---------- Routing (hash) ---------- */
   const JAY_ROUTES = ["base", "strategies", "signals", "atlas"];
   const ROUTES = ["gate", ...JAY_ROUTES, "anna"];
-  const TITLES = {
+  const TITLES_EN = {
     gate: "Jay & Anna", base: "Intelligence Base", strategies: "Strategies",
     signals: "Signals", atlas: "World Atlas", anna: "Anna"
+  };
+  const TITLES_ZH = {
+    gate: "Jay & Anna", base: "情报库", strategies: "策略",
+    signals: "信号", atlas: "全球地图", anna: "Anna"
   };
 
   function routeFromHash() {
@@ -123,19 +218,18 @@
   }
 
   const chrome = $("#chrome"), foot = $("#foot"), chromeWho = $("#chromeWho");
+  let prevRoute = null;
 
   function go(name, { push = true } = {}) {
-    // Let the hash be the single source of truth: set it and let hashchange render.
     if (push && routeFromHash() !== name) {
       location.hash = name === "gate" ? "#/" : "#/" + name;
-      return;
+      return;                                   // let hashchange render
     }
-
     const onGate = name === "gate";
     const onJay = JAY_ROUTES.includes(name);
 
     chrome.hidden = onGate;
-    foot.hidden = !onJay;        // the footer is Jay's; it does not belong on Anna's page
+    foot.hidden = !onJay;                       // the footer is Jay's
     seg.hidden = !onJay;
     chromeWho.textContent = onJay ? window.META.owner : (name === "anna" ? "Anna" : "");
 
@@ -146,7 +240,7 @@
       if (on && !onGate && !REDUCED.matches) { void r.offsetWidth; r.classList.add("is-entering"); }
     });
 
-    if (onGate) resetGate();
+    if (onGate) resetGate(prevRoute !== null && prevRoute !== "gate");
 
     $$(".seg a").forEach((a) => {
       const on = a.dataset.route === name;
@@ -154,19 +248,19 @@
       if (on && onJay) movePill(a);
     });
 
-    document.title = TITLES[name] + (onJay ? " — " + window.META.owner : "");
+    const T = window.LANG === "zh" ? TITLES_ZH : TITLES_EN;
+    document.title = T[name] + (onJay ? " — " + window.META.owner : "");
+    prevRoute = name;
     window.dispatchEvent(new CustomEvent("routechange", { detail: name }));
+    requestAnimationFrame(syncLangSwitches);
     if (push) window.scrollTo({ top: 0, behavior: REDUCED.matches ? "auto" : "smooth" });
   }
   window.addEventListener("hashchange", () => go(routeFromHash(), { push: false }));
 
-  /* ---------- Sheet ------------------------------------------------
-     Bottom sheet on narrow screens (drag + momentum), side panel on wide.
-     Enter and exit travel the same path; grabbing it mid-flight works.  */
+  /* ---------- Sheet ---------- */
   const sheet = $("#sheet"), scrim = $("#scrim"), sheetBody = $("#sheetBody");
   const isWide = () => window.matchMedia("(min-width: 860px)").matches;
   let sheetOpen = false, lastTrigger = null;
-
   const axis = () => (isWide() ? "x" : "y");
   const extent = () => (isWide() ? sheet.offsetWidth : sheet.offsetHeight);
 
@@ -211,42 +305,35 @@
   scrim && scrim.addEventListener("click", () => closeSheet());
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheet(); });
   document.addEventListener("click", (e) => { if (e.target.closest("#sheetClose")) closeSheet(); });
-  window.addEventListener("resize", () => { if (!sheetOpen) { sheetSpring.set(extent()); } });
+  window.addEventListener("resize", () => { if (!sheetOpen) sheetSpring.set(extent()); });
 
-  /* Drag-to-dismiss — 1:1 tracking, rubber-band past the open position,
-     release decided by projected momentum, velocity handed to the spring. */
   (function dragSheet() {
     if (!sheet) return;
     const grip = $(".sheet-grip", sheet);
-    let dragging = false, startP = 0, startVal = 0, tracker = new VelocityTracker();
-
+    let dragging = false, startP = 0, startVal = 0;
+    const tracker = new VelocityTracker();
     const coord = (e) => (axis() === "x" ? e.clientX : e.clientY);
 
     function down(e) {
-      if (isWide() && !e.target.closest(".sheet-grip")) return;
-      if (!isWide() && !e.target.closest(".sheet-grip")) return;
+      if (!e.target.closest(".sheet-grip")) return;
       dragging = true;
       sheetSpring.stop();
-      startP = coord(e);
-      startVal = sheetSpring.x;
+      startP = coord(e); startVal = sheetSpring.x;
       tracker.reset(); tracker.add(startVal);
       e.currentTarget.setPointerCapture(e.pointerId);
     }
     function move(e) {
       if (!dragging) return;
-      const d = coord(e) - startP;
-      let p = startVal + d;
-      if (p < 0) p = -rubberband(-p, extent());   // resist, don't hard-stop
-      sheetSpring.set(p);
-      tracker.add(p);
+      let p = startVal + (coord(e) - startP);
+      if (p < 0) p = -rubberband(-p, extent());
+      sheetSpring.set(p); tracker.add(p);
       e.preventDefault();
     }
     function up() {
       if (!dragging) return;
       dragging = false;
       const v = tracker.get();
-      const projected = sheetSpring.x + project(v);
-      if (projected > extent() * 0.32) closeSheet(v);
+      if (sheetSpring.x + project(v) > extent() * 0.32) closeSheet(v);
       else sheetSpring.to(0, { velocity: v, damping: 0.86, response: 0.32 });
     }
     const host = grip || sheet;
@@ -267,7 +354,7 @@
   }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
   const observeReveals = () => $$(".reveal:not(.is-in)").forEach((el) => io.observe(el));
 
-  /* ---------- Payoff diagrams (pure SVG, theme-aware via currentColor) ---------- */
+  /* ---------- Payoff diagrams ---------- */
   const PAYOFFS = {
     short_put:    [[0,-58],[26,-58],[52,-30],[74,-2],[100,-2]],
     covered_call: [[0,-60],[38,-16],[62,10],[76,18],[100,18]],
@@ -285,7 +372,6 @@
     const d = pts.map((p, i) => (i ? "L" : "M") + p[0] + " " + y(p[1]).toFixed(1)).join(" ");
     const area = d + ` L100 ${MID} L0 ${MID} Z`;
     const uid = kind + "-" + Math.random().toString(36).slice(2, 7);
-    // preserveAspectRatio="none" stretches x, so every stroke is non-scaling.
     return `<svg class="payoff" viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true">
       <defs><linearGradient id="pg-${uid}" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="currentColor" stop-opacity="0.16"/>
@@ -299,42 +385,44 @@
     </svg>`;
   }
 
-  /* ---------- The gate ---------------------------------------------
-     Two doors. The chosen one opens toward you and the rest recede;
-     coming back reverses the same path, so the space stays coherent. */
+  /* ---------- The gate ---------- */
   const ARROW = '<span class="arrow" aria-hidden="true">→</span>';
   let chosen = null;
 
   function renderGate() {
-    $("#gateGrid").innerHTML = window.PEOPLE.map((p) => `
-      <button class="door${p.ready ? "" : " is-quiet"}" type="button" data-door="${p.id}" data-route="${p.route}">
+    $("#gateGrid").innerHTML = window.PEOPLE.map((p) => {
+      const role = t(`people.${p.id}.role`, p.role);
+      const sum  = t(`people.${p.id}.summary`, p.summary);
+      const cta  = t(`people.${p.id}.cta`, p.cta);
+      const chips = t(`people.${p.id}.chips`, p.chips) || [];
+      return `<button class="door${p.ready ? "" : " is-quiet"}" type="button"
+                data-door="${p.id}" data-route="${p.route}">
         <span class="door-top">
           <span class="door-avatar ${p.tone}" aria-hidden="true">${p.initials}</span>
-          <span>
-            <h2>${p.name}</h2>
-            <span class="t-caption door-role">${p.role}</span>
-          </span>
+          <span><h2>${p.name}</h2><span class="t-caption door-role">${role}</span></span>
         </span>
-        <span class="t-body door-sum">${p.summary}</span>
-        ${p.chips.length
-          ? `<span class="door-chips">${p.chips.map((c) => `<span class="chip">${c}</span>`).join("")}</span>`
+        <span class="t-body door-sum">${sum}</span>
+        ${chips.length
+          ? `<span class="door-chips">${chips.map((c) => `<span class="chip">${c}</span>`).join("")}</span>`
           : `<span class="door-empty" aria-hidden="true"><i></i><i></i><i></i></span>`}
-        <span class="door-foot">${p.cta} ${ARROW}</span>
-      </button>`).join("");
+        <span class="door-foot">${cta} ${ARROW}</span>
+      </button>`;
+    }).join("");
 
-    $("#annaSlots").innerHTML = window.ANNA.slots.map(([h, b]) =>
+    const slots = t("anna.slots", window.ANNA.slots);
+    $("#annaSlots").innerHTML = slots.map(([h, b]) =>
       `<div class="slot reveal"><h3 class="t-head">${h}</h3>
         <p class="t-body" style="margin:0.45rem 0 0;font-size:0.9375rem">${b}</p></div>`).join("");
   }
 
-  function resetGate() {
+  function resetGate(animateReturn) {
     const gate = $(".gate");
     if (!gate) return;
     gate.classList.remove("is-exiting");
     $$(".door", gate).forEach((d) => d.classList.remove("is-chosen", "is-returning"));
-    if (chosen) {
+    if (animateReturn && chosen && !REDUCED.matches) {
       const d = $(`.door[data-door="${chosen}"]`, gate);
-      if (d && !REDUCED.matches) { void d.offsetWidth; d.classList.add("is-returning"); }
+      if (d) { void d.offsetWidth; d.classList.add("is-returning"); }
     }
   }
 
@@ -343,136 +431,134 @@
     chosen = door.dataset.door;
     $$(".door", gate).forEach((d) => d.classList.toggle("is-chosen", d === door));
     gate.classList.add("is-exiting");
-    const wait = REDUCED.matches ? 0 : 230;
-    setTimeout(() => go(door.dataset.route), wait);
+    setTimeout(() => go(door.dataset.route), REDUCED.matches ? 0 : 230);
   }
-
   document.addEventListener("click", (e) => {
     const d = e.target.closest("[data-door]");
     if (d) { e.preventDefault(); leaveGate(d); }
   });
 
-  /* Doors get the same press feedback as cards — on pointer-down. */
-  document.addEventListener("pointerdown", (e) => {
-    const d = e.target.closest(".door");
-    if (!d) return;
-    d.classList.add("is-pressed");
-    const off = () => d.classList.remove("is-pressed");
-    d.addEventListener("pointerup", off, { once: true });
-    d.addEventListener("pointercancel", off, { once: true });
-    d.addEventListener("pointerleave", off, { once: true });
-  }, { passive: true });
-
-  /* ---------- Render: hero stats ---------- */
+  /* ---------- Hero stats ---------- */
   function renderStats() {
-    const cs = Object.values(window.COUNTRIES);
-    const mcap = cs.reduce((a, c) => a + (c.mcap || 0), 0);
-    const best = cs.reduce((a, c) => (c.ytd > a.ytd ? c : a));
-    const worst = cs.reduce((a, c) => (c.ytd < a.ytd ? c : a));
-    const short = (n) => n
+    const entries = Object.entries(window.COUNTRIES);
+    const mcap = entries.reduce((a, [, c]) => a + (c.mcap || 0), 0);
+    const best  = entries.reduce((a, e) => (e[1].ytd > a[1].ytd ? e : a));
+    const worst = entries.reduce((a, e) => (e[1].ytd < a[1].ytd ? e : a));
+    const shortEn = (n) => n
       .replace("United States", "US").replace("United Kingdom", "UK")
       .replace("South Korea", "Korea").replace("United Arab Emirates", "UAE")
       .replace(" SAR", "").replace("South Africa", "S. Africa");
+    const label = ([iso, c]) => tm("countries", iso, shortEn(c.name));
+    const cap = window.LANG === "zh"
+      ? Math.round(mcap) + "万亿美元" : "$" + mcap.toFixed(0) + "tn";
+
     const rows = [
-      ["Markets covered", cs.length, ""],
-      ["Market cap mapped", "$" + mcap.toFixed(0) + "tn", ""],
-      ["Best index YTD", short(best.name) + " +" + best.ytd.toFixed(0) + "%", "pos"],
-      ["Worst index YTD", short(worst.name) + " " + worst.ytd.toFixed(0) + "%", "neg"],
-      ["Strategies documented", window.STRATEGIES.length, ""]
+      [t("ui.statMarkets", "Markets covered"), entries.length, ""],
+      [t("ui.statMcap", "Market cap mapped"), cap, ""],
+      [t("ui.statBest", "Best index YTD"),  label(best)  + " +" + best[1].ytd.toFixed(0)  + "%", "pos"],
+      [t("ui.statWorst", "Worst index YTD"), label(worst) + " "  + worst[1].ytd.toFixed(0) + "%", "neg"],
+      [t("ui.statStrategies", "Strategies documented"), window.STRATEGIES.length, ""]
     ];
     $("#statbar").innerHTML = rows.map(([k, v, cls]) =>
       `<div><div class="t-label">${k}</div><div class="v num ${cls}">${v}</div></div>`).join("");
   }
 
-  /* ---------- Render: strategies ---------- */
+  /* ---------- Strategies ---------- */
+  const S = (s, field) => t(`strategies.${s.id}.${field}`, s[field]);
+
   function stratCard(s) {
+    const tags = t(`strategies.${s.id}.tags`, s.tags);
     return `<article class="card pad tap strat reveal" data-strat="${s.id}" tabindex="0" role="button"
-              aria-label="${s.name} — open detail">
+              aria-label="${S(s, "name")}">
       <div style="color:var(--accent)">${payoffSVG(s.payoff)}</div>
-      <h3 class="t-head">${s.name}</h3>
-      <p class="t-body" style="margin:0;font-size:0.9375rem">${s.thesis}</p>
-      <div class="strat-meta">${s.tags.map((t) => `<span class="chip">${t}</span>`).join("")}</div>
+      <h3 class="t-head">${S(s, "name")}</h3>
+      <p class="t-body" style="margin:0;font-size:0.9375rem">${S(s, "thesis")}</p>
+      <div class="strat-meta">${tags.map((x) => `<span class="chip">${x}</span>`).join("")}</div>
     </article>`;
   }
   function stratSheet(s) {
+    const tags = t(`strategies.${s.id}.tags`, s.tags);
+    const metrics = t(`strategies.${s.id}.metrics`, s.metrics);
     return `<div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.9rem">
-        <div style="flex:1"><div class="t-label">Strategy</div><h2 class="t-title" style="margin-top:0.25rem">${s.name}</h2></div>
-        <button class="icon-btn" id="sheetClose" aria-label="Close">✕</button>
+        <div style="flex:1"><div class="t-label">${t("ui.sheetStrategy", "Strategy")}</div>
+          <h2 class="t-title" style="margin-top:0.25rem">${S(s, "name")}</h2></div>
+        <button class="icon-btn" id="sheetClose" aria-label="${t("ui.sheetClose", "Close")}">✕</button>
       </div>
       <div style="color:var(--accent);margin-bottom:1rem">${payoffSVG(s.payoff)}</div>
-      <p class="t-body">${s.detail}</p>
+      <p class="t-body">${S(s, "detail")}</p>
       <div class="kv" style="margin:1.1rem 0">
-        ${s.metrics.map(([k, v]) => `<div><div class="t-label">${k}</div><div class="v">${v}</div></div>`).join("")}
+        ${metrics.map(([k, v]) => `<div><div class="t-label">${k}</div><div class="v">${v}</div></div>`).join("")}
       </div>
-      <div class="t-label" style="margin-bottom:0.4rem">Where it hurts</div>
-      <p class="t-body" style="margin-top:0">${s.risks}</p>
-      <div class="strat-meta">${s.tags.map((t) => `<span class="chip">${t}</span>`).join("")}</div>`;
+      <div class="t-label" style="margin-bottom:0.4rem">${t("ui.sheetHurts", "Where it hurts")}</div>
+      <p class="t-body" style="margin-top:0">${S(s, "risks")}</p>
+      <div class="strat-meta">${tags.map((x) => `<span class="chip">${x}</span>`).join("")}</div>`;
   }
   function renderStrategies() {
     $("#stratGrid").innerHTML = window.STRATEGIES.map(stratCard).join("");
-    $("#skillList").innerHTML = window.SKILLS.map(([n, v, d]) =>
-      `<div class="skill reveal">
-        <div><div class="t-head">${n}</div><div class="t-caption">${d}</div></div>
+    const zhSkills = t("skills", null);
+    $("#skillList").innerHTML = window.SKILLS.map(([n, v, d], i) => {
+      const tr = zhSkills && zhSkills[i];
+      return `<div class="skill reveal">
+        <div><div class="t-head">${tr ? tr[0] : n}</div><div class="t-caption">${tr ? tr[1] : d}</div></div>
         <div class="num t-caption">${v}</div>
         <div class="skill-bar"><i data-w="${v}"></i></div>
-      </div>`).join("");
+      </div>`;
+    }).join("");
+  }
+  function openStrat(el) {
+    const s = window.STRATEGIES.find((x) => x.id === el.dataset.strat);
+    s && openSheet(stratSheet(s), el);
   }
   document.addEventListener("click", (e) => {
     const c = e.target.closest("[data-strat]");
-    if (!c) return;
-    const s = window.STRATEGIES.find((x) => x.id === c.dataset.strat);
-    s && openSheet(stratSheet(s), c);
+    if (c) openStrat(c);
   });
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" && e.key !== " ") return;
     const c = e.target.closest && e.target.closest("[data-strat]");
     if (!c) return;
-    e.preventDefault();
-    const s = window.STRATEGIES.find((x) => x.id === c.dataset.strat);
-    s && openSheet(stratSheet(s), c);
+    e.preventDefault(); openStrat(c);
   });
 
-  /* ---------- Render: events ---------- */
+  /* ---------- Events ---------- */
   function renderEvents() {
-    $("#eventList").innerHTML = window.EVENTS.map((ev) =>
-      `<li data-tone="${ev.tone}" class="reveal">
-        <div class="t-label">${ev.date}</div>
-        <h3 class="t-head" style="margin:0.2rem 0 0.35rem">${ev.title}</h3>
-        <p class="t-body" style="margin:0 0 0.5rem;font-size:0.9375rem">${ev.body}</p>
-        <p class="t-caption" style="margin:0"><strong style="color:var(--ink-2)">Read:</strong> ${ev.read}</p>
-      </li>`).join("");
+    const zh = t("events", null);
+    const readLabel = t("ui.logRead", "Read:");
+    $("#eventList").innerHTML = window.EVENTS.map((ev, i) => {
+      const e = (zh && zh[i]) || ev;
+      return `<li data-tone="${ev.tone}" class="reveal">
+        <div class="t-label">${e.date || ev.date}</div>
+        <h3 class="t-head" style="margin:0.2rem 0 0.35rem">${e.title}</h3>
+        <p class="t-body" style="margin:0 0 0.5rem;font-size:0.9375rem">${e.body}</p>
+        <p class="t-caption" style="margin:0"><strong style="color:var(--ink-2)">${readLabel}</strong> ${e.read}</p>
+      </li>`;
+    }).join("");
   }
+
+  /* ---------- Render everything ---------- */
+  function renderAll() {
+    applyStatic();
+    fillDynamic();
+    renderGate(); renderStats(); renderStrategies(); renderEvents();
+    window.renderHeat && window.renderHeat();
+    window.relabelAtlas && window.relabelAtlas();
+  }
+
+  window.addEventListener("langchange", () => {
+    closeSheet();                       // its contents are in the old language
+    renderAll();
+    go(routeFromHash(), { push: false });
+    requestAnimationFrame(() => {
+      movePill($('.seg a[aria-current="page"]'), true);
+      syncLangSwitches();
+      observeReveals();
+    });
+  });
 
   /* ---------- Boot ---------- */
   function boot() {
-    const FILL = {
-      owner: window.META.owner,
-      tagline: window.META.tagline,
-      asof: window.META.asof,
-      role: window.META.role + " · " + window.META.city,
-      disclaimer: window.DISCLAIMER,
-      "gate-eyebrow": window.GATE.eyebrow,
-      "gate-title": window.GATE.title,
-      "gate-sub": window.GATE.sub,
-      "gate-foot": window.GATE.foot,
-      "anna-eyebrow": window.ANNA.eyebrow,
-      "anna-title": window.ANNA.title,
-      "anna-lede": window.ANNA.lede
-    };
-    for (const k in FILL) $$(`[data-fill='${k}']`).forEach((n) => (n.textContent = FILL[k]));
-
-    const links = $("#footLinks");
-    if (links) {
-      const L = [];
-      if (window.META.email) L.push(`<a href="mailto:${window.META.email}">Email</a>`);
-      if (window.META.linkedin) L.push(`<a href="${window.META.linkedin}" rel="me noopener">LinkedIn</a>`);
-      if (window.META.github) L.push(`<a href="${window.META.github}" rel="me noopener">GitHub</a>`);
-      links.innerHTML = L.join('<span class="t-caption"> · </span>') ||
-        '<span class="t-caption">Add your links in assets/js/data.js</span>';
-    }
-
-    renderGate(); renderStats(); renderStrategies(); renderEvents();
-    window.renderHeat && window.renderHeat();
+    buildLangSwitches();
+    renderAll();
     window.initAtlas && window.initAtlas();
 
     $$(".seg a").forEach((a) => a.addEventListener("click", (e) => {
@@ -482,14 +568,18 @@
       e.preventDefault(); go(a.dataset.goto);
     }));
 
-    chosen = null;              // no "returning" animation on a cold load
+    chosen = null;
     go(routeFromHash(), { push: false });
     requestAnimationFrame(() => {
-      const cur = $('.seg a[aria-current="page"]'); movePill(cur, true);
+      movePill($('.seg a[aria-current="page"]'), true);
+      syncLangSwitches();
       observeReveals();
     });
     window.addEventListener("routechange", () => requestAnimationFrame(observeReveals));
-    window.addEventListener("resize", () => movePill($('.seg a[aria-current="page"]'), true));
+    window.addEventListener("resize", () => {
+      movePill($('.seg a[aria-current="page"]'), true);
+      syncLangSwitches();
+    });
     document.body.dataset.ready = "1";
   }
 

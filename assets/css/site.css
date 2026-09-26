@@ -112,6 +112,35 @@ a:hover { text-decoration: underline; }
 .pos { color: var(--pos); }
 .neg { color: var(--neg); }
 
+/* ---------- Chinese ----------------------------------------------
+   Latin tracking rules invert for CJK: the negative letter-spacing that
+   tightens a large Latin headline mangles Chinese glyphs, and Chinese
+   body text needs more leading, not less. Numerals stay Latin. */
+html[lang="zh-Hans"] body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+               "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", system-ui, sans-serif;
+  line-height: 1.72;
+}
+html[lang="zh-Hans"] h1, html[lang="zh-Hans"] h2, html[lang="zh-Hans"] h3,
+html[lang="zh-Hans"] .t-display, html[lang="zh-Hans"] .t-title,
+html[lang="zh-Hans"] .t-head, html[lang="zh-Hans"] .t-lede,
+html[lang="zh-Hans"] .door h2, html[lang="zh-Hans"] .btn,
+html[lang="zh-Hans"] .seg a, html[lang="zh-Hans"] .statbar .v,
+html[lang="zh-Hans"] .kv .v { letter-spacing: 0; }
+
+html[lang="zh-Hans"] h1, html[lang="zh-Hans"] .t-display { line-height: 1.2; font-weight: 700; }
+html[lang="zh-Hans"] h2, html[lang="zh-Hans"] .t-title   { line-height: 1.32; }
+html[lang="zh-Hans"] .t-body   { line-height: 1.85; }
+html[lang="zh-Hans"] .t-lede   { line-height: 1.72; }
+html[lang="zh-Hans"] .t-caption{ line-height: 1.7; }
+html[lang="zh-Hans"] .t-label  { letter-spacing: 0.06em; }
+html[lang="zh-Hans"] .door h2  { line-height: 1.22; }
+html[lang="zh-Hans"] .door .door-sum { max-width: 26em; }
+html[lang="zh-Hans"] .gate-head p { max-width: 27em; }   /* stops a one-word orphan line */
+html[lang="zh-Hans"] .section-head .t-body { max-width: 40em; }
+html[lang="zh-Hans"] .hero .t-lede { max-width: 24em; }
+html[lang="zh-Hans"] table.heat th { font-weight: 600; }
+
 .wrap { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--gut); }
 
 /* ---------- The wash the glass sits on ---------- */
@@ -180,6 +209,40 @@ a:hover { text-decoration: underline; }
 .seg a:hover { color: var(--ink); text-decoration: none; }
 .seg a:active { transform: scale(0.96); }
 .seg a[aria-current="page"] { color: var(--ink); }
+
+/* Language control — same segmented grammar as the section nav */
+.lang {
+  position: relative; flex: none;
+  display: flex; align-items: center; gap: 2px;
+  padding: 3px; border-radius: 999px;
+  background: var(--frost-thin);
+  box-shadow: inset 0 0 0 1px var(--hairline-soft);
+}
+.lang-pill {
+  position: absolute; top: 3px; left: 0; height: calc(100% - 6px);
+  border-radius: 999px; background: var(--solid);
+  box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255,255,255,.9);
+  will-change: transform, width; pointer-events: none;
+}
+.lang button {
+  position: relative; z-index: 1;
+  border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-size: 0.75rem; font-weight: 620; letter-spacing: 0.01em;
+  color: var(--ink-3); padding: 0.34rem 0.62rem; border-radius: 999px;
+  transition: color 160ms ease-out, transform 110ms ease-out;
+}
+.lang button:hover { color: var(--ink-2); }
+.lang button:active { transform: scale(0.94); }
+.lang button[aria-pressed="true"] { color: var(--ink); }
+
+/* The gate has no chrome, so it carries its own copy, floated top-right. */
+.gate-lang {
+  position: absolute; z-index: 5;
+  top: clamp(1rem, 3vh, 1.75rem); right: var(--gut);
+  background: var(--frost);
+  backdrop-filter: var(--blur-md); -webkit-backdrop-filter: var(--blur-md);
+  box-shadow: inset 0 0 0 1px var(--hairline-soft), inset 0 1px 0 var(--edge), var(--shadow-1);
+}
 
 .icon-btn {
   width: 32px; height: 32px; flex: none;
@@ -251,6 +314,7 @@ a:hover { text-decoration: underline; }
    ============================================================ */
 #route-gate.is-active { display: flex; }
 .gate {
+  position: relative;
   min-height: 100svh; width: 100%;
   display: flex; flex-direction: column; justify-content: center;
   padding: clamp(2.5rem, 7vh, 5rem) var(--gut);

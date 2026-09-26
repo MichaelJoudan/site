@@ -91,7 +91,7 @@
         el.classList.add("has-data");
         el.setAttribute("tabindex", "0");
         el.setAttribute("role", "button");
-        el.setAttribute("aria-label", window.COUNTRIES[iso].name);
+        el.setAttribute("aria-label", cName(iso));
         paths[iso] = el;
       } else {
         el.setAttribute("aria-hidden", "true");
@@ -111,7 +111,7 @@
       dot.dataset.iso = iso;
       dot.setAttribute("tabindex", "0");
       dot.setAttribute("role", "button");
-      dot.setAttribute("aria-label", c.name);
+      dot.setAttribute("aria-label", cName(iso));
       gRoot.appendChild(dot);
       paths[iso] = dot;
     }
@@ -127,8 +127,8 @@
     const ramp = buckets.type === "div" ? DIV : SEQ;
     $("#legendSwatches").innerHTML = ramp.map((v) => `<i style="background:${cssVar(v)}"></i>`).join("");
     const vals = Object.values(window.COUNTRIES).map((c) => c[metric.key]).filter((v) => typeof v === "number");
-    $("#legendRange").textContent = metric.fmt(Math.min(...vals)) + "  →  " + metric.fmt(Math.max(...vals));
-    $("#legendLabel").textContent = metric.label;
+    $("#legendRange").textContent = mFmt(metric, Math.min(...vals)) + "  →  " + mFmt(metric, Math.max(...vals));
+    $("#legendLabel").textContent = mLabel(metric);
   }
 
   /* ---------- View transform ---------- */
@@ -225,12 +225,6 @@
       if (iso && window.COUNTRIES[iso]) highlight(iso);
     });
 
-    $$("#metricSeg button").forEach((b) => b.addEventListener("click", () => {
-      metric = window.METRICS.find((m) => m.key === b.dataset.metric);
-      $$("#metricSeg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-      paint();
-    }));
-
   }
 
   let hot = null;
@@ -245,8 +239,8 @@
     if (!c) { highlight(null); hideTip(); return; }
     highlight(iso);
     const r = mapFrame.getBoundingClientRect();
-    tip.innerHTML = `<strong>${c.name}</strong><br><span class="t-caption">${metric.label}: </span>
-      <span class="num">${metric.fmt(c[metric.key])}</span>`;
+    tip.innerHTML = `<strong>${cName(iso)}</strong><br><span class="t-caption">${mLabel(metric)}: </span>
+      <span class="num">${mFmt(metric, c[metric.key])}</span>`;
     tip.classList.add("is-on");
     const x = e.clientX - r.left, y = e.clientY - r.top;
     const w = tip.offsetWidth, h = tip.offsetHeight;
@@ -268,48 +262,89 @@
   function show(iso, trigger) {
     const c = window.COUNTRIES[iso];
     const sec = SECTOR_ORDER.map((k) => [k, c.sectors[k] || 0]).sort((a, b) => b[1] - a[1]).filter((s) => s[1] > 0);
-    const conf = { high: "Well sourced", medium: "Partly estimated", low: "Treat with care" }[c.conf] || "";
+    const confEn = { high: "Well sourced", medium: "Partly estimated", low: "Treat with care" };
+    const conf = window.tm("conf", c.conf, confEn[c.conf] || "");
+    const note = window.tm("countryNotes", iso, c.note);
+    const K = (k, en) => window.t("ui." + k, en);
     const html = `
       <div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.9rem">
         <div style="flex:1">
           <div class="t-label">${c.index} · ${c.cur}</div>
-          <h2 class="t-title" style="margin-top:0.25rem">${c.name}</h2>
+          <h2 class="t-title" style="margin-top:0.25rem">${cName(iso)}</h2>
         </div>
-        <button class="icon-btn" id="sheetClose" aria-label="Close">✕</button>
+        <button class="icon-btn" id="sheetClose" aria-label="${K('sheetClose', 'Close')}">✕</button>
       </div>
 
       <div class="kv" style="margin-bottom:1.2rem">
-        <div><div class="t-label">Index YTD</div><div class="v num ${c.ytd >= 0 ? "pos" : "neg"}">${(c.ytd >= 0 ? "+" : "") + c.ytd.toFixed(1)}%</div></div>
-        <div><div class="t-label">Market cap</div><div class="v num">$${c.mcap.toFixed(2)}tn</div></div>
-        <div><div class="t-label">GDP</div><div class="v num">$${c.gdp.toFixed(2)}tn</div></div>
-        <div><div class="t-label">GDP growth</div><div class="v num ${c.growth >= 0 ? "" : "neg"}">${(c.growth >= 0 ? "+" : "") + c.growth.toFixed(1)}%</div></div>
-        <div><div class="t-label">Inflation</div><div class="v num">${c.cpi.toFixed(1)}%</div></div>
-        <div><div class="t-label">Policy rate</div><div class="v num">${c.rate.toFixed(2)}%</div></div>
-        <div><div class="t-label">10y yield</div><div class="v num">${c.y10.toFixed(2)}%</div></div>
-        <div><div class="t-label">Unemployment</div><div class="v num">${c.unemp.toFixed(1)}%</div></div>
+        <div><div class="t-label">${kLabel("Index YTD")}</div><div class="v num ${c.ytd >= 0 ? "pos" : "neg"}">${(c.ytd >= 0 ? "+" : "") + c.ytd.toFixed(1)}%</div></div>
+        <div><div class="t-label">${kLabel("Market cap")}</div><div class="v num">${window.moneyTn(c.mcap)}</div></div>
+        <div><div class="t-label">${kLabel("GDP")}</div><div class="v num">${window.moneyTn(c.gdp)}</div></div>
+        <div><div class="t-label">${kLabel("GDP growth")}</div><div class="v num ${c.growth >= 0 ? "" : "neg"}">${(c.growth >= 0 ? "+" : "") + c.growth.toFixed(1)}%</div></div>
+        <div><div class="t-label">${kLabel("Inflation")}</div><div class="v num">${c.cpi.toFixed(1)}%</div></div>
+        <div><div class="t-label">${kLabel("Policy rate")}</div><div class="v num">${c.rate.toFixed(2)}%</div></div>
+        <div><div class="t-label">${kLabel("10y yield")}</div><div class="v num">${c.y10.toFixed(2)}%</div></div>
+        <div><div class="t-label">${kLabel("Unemployment")}</div><div class="v num">${c.unemp.toFixed(1)}%</div></div>
       </div>
 
-      <div class="t-label" style="margin-bottom:0.55rem">Sector mix — ${c.index}</div>
+      <div class="t-label" style="margin-bottom:0.55rem">${K("sheetSectors", "Sector mix")} — ${c.index}</div>
       ${sec.map(([k, v]) => `<div class="sector-row">
-          <span style="font-size:0.8125rem">${k}</span>
+          <span style="font-size:0.8125rem">${sName(k)}</span>
           <span class="num t-caption">${v.toFixed(1)}%</span>
           <span class="bar"><i data-w="${Math.min(100, v * 1.9).toFixed(1)}"></i></span>
         </div>`).join("")}
 
-      <div class="t-label" style="margin:1.3rem 0 0.35rem">Largest listed companies</div>
+      <div class="t-label" style="margin:1.3rem 0 0.35rem">${K("sheetCompanies", "Largest listed companies")}</div>
       ${c.top5.map(([n, t, s, m], i) => `<div class="co">
           <span class="rank num">${i + 1}</span>
           <span><span style="font-size:0.875rem;font-weight:560">${n}</span>
-            <span class="t-caption"> · ${t}</span><br><span class="t-caption">${s}</span></span>
-          <span class="num" style="font-size:0.8125rem">$${m >= 1000 ? (m / 1000).toFixed(2) + "tn" : m + "bn"}</span>
+            <span class="t-caption"> · ${t}</span><br><span class="t-caption">${sName(s)}</span></span>
+          <span class="num" style="font-size:0.8125rem">${window.money(m)}</span>
         </div>`).join("")}
 
-      ${c.note ? `<p class="t-caption" style="margin-top:1.1rem;padding:0.7rem 0.85rem;border-radius:12px;background:var(--surface-2)">
-        <strong style="color:var(--ink-2)">Note.</strong> ${c.note}</p>` : ""}
+      ${note ? `<p class="t-caption" style="margin-top:1.1rem;padding:0.7rem 0.85rem;border-radius:12px;background:var(--sunk)">
+        <strong style="color:var(--ink-2)">${K("sheetNote", "Note.")}</strong> ${note}</p>` : ""}
 
-      <p class="t-caption" style="margin-top:1rem">Data quality: ${conf}. Snapshot as of ${window.META.asof}.</p>`;
+      <p class="t-caption" style="margin-top:1rem">${K("sheetQuality", "Data quality")}: ${conf}.
+        ${K("sheetAsOf", "Snapshot as of")} ${window.t("meta.asof", window.META.asof)}.</p>`;
     window.openSheet(html, trigger);
   }
+
+  /* ---------- Localisation ------------------------------------------
+     Labels and units come from i18n.js; the numbers never change. */
+  const mLabel  = (m) => window.tm("metrics", m.key, m.label);
+  const cName   = (iso) => window.tm("countries", iso, window.COUNTRIES[iso].name);
+  const sName   = (k) => window.tm("sectors", k, k);
+  const kLabel  = (k) => window.tm("sheetKeys", k, k);
+  const mFmt    = (m, v) =>
+    (window.LANG === "zh" && (m.key === "mcap" || m.key === "gdp")) ? window.moneyTn(v) : m.fmt(v);
+
+  function renderMetricButtons() {
+    const host = $("#metricSeg");
+    if (!host) return;
+    host.innerHTML = window.METRICS.map((m) =>
+      `<button type="button" data-metric="${m.key}" aria-pressed="${m.key === metric.key}">${mLabel(m)}</button>`).join("");
+    $$("#metricSeg button").forEach((b) => b.addEventListener("click", () => {
+      metric = window.METRICS.find((m) => m.key === b.dataset.metric);
+      $$("#metricSeg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      paint();
+    }));
+  }
+
+  function renderCountryList() {
+    const list = $("#countryList");
+    if (!list) return;
+    list.innerHTML = Object.entries(window.COUNTRIES)
+      .sort((a, b) => b[1].mcap - a[1].mcap)
+      .map(([iso, c]) => `<button class="chip tap" data-open="${iso}" type="button">${cName(iso)}
+        <span class="num" style="opacity:0.6">${window.moneyTn(c.mcap)}</span></button>`).join("");
+  }
+
+  /* Called by app.js when the language changes. Geometry is untouched. */
+  window.relabelAtlas = function relabelAtlas() {
+    if (!svg) return;
+    for (const iso in paths) paths[iso].setAttribute("aria-label", cName(iso));
+    renderMetricButtons(); renderCountryList(); paint(); hideTip();
+  };
 
   /* ---------- Init ---------- */
   window.initAtlas = function initAtlas() {
@@ -319,22 +354,16 @@
     gRoot = document.createElementNS(NS, "g");
     svg.appendChild(gRoot);
 
-    $("#metricSeg").innerHTML = window.METRICS.map((m, i) =>
-      `<button type="button" data-metric="${m.key}" aria-pressed="${i === 0}">${m.label}</button>`).join("");
+    renderMetricButtons();
 
     build(); paint(); wire(); applyView();
 
     // Country list — a keyboard- and search-friendly way in that doesn't need the map.
+    renderCountryList();
     const list = $("#countryList");
-    if (list) {
-      list.innerHTML = Object.entries(window.COUNTRIES)
-        .sort((a, b) => b[1].mcap - a[1].mcap)
-        .map(([iso, c]) => `<button class="chip tap" data-open="${iso}" type="button">${c.name}
-          <span class="num" style="opacity:0.6">$${c.mcap.toFixed(1)}tn</span></button>`).join("");
-      list.addEventListener("click", (e) => {
-        const b = e.target.closest("[data-open]");
-        if (b) show(b.dataset.open, b);
-      });
-    }
+    list && list.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-open]");
+      if (b) show(b.dataset.open, b);
+    });
   };
 })();

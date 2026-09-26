@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Intelligence Base</title>
-<meta name="description" content="A working intelligence base for multi-asset markets: derivative strategy notes, a cross-asset interaction grid, and an interactive world atlas of market structure.">
-<meta name="color-scheme" content="light dark">
-<meta property="og:title" content="Intelligence Base">
+<title>Jay &amp; Anna</title>
+<meta name="description" content="Two people, one address. Jay's half: derivative strategy notes, a cross-asset interaction grid, and an interactive world atlas of market structure.">
+<meta name="color-scheme" content="light">
+<meta property="og:title" content="Jay &amp; Anna">
 <meta property="og:description" content="Multi-asset market structure, derivative strategy notes and an interactive world atlas.">
 <meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230a6cff'/><circle cx='16' cy='16' r='7' fill='none' stroke='white' stroke-width='2.4'/><path d='M9 16h14M16 9c3.2 3.6 3.2 10.4 0 14M16 9c-3.2 3.6-3.2 10.4 0 14' stroke='white' stroke-width='1.6' fill='none'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%230b63e5'/><circle cx='16' cy='16' r='7' fill='none' stroke='white' stroke-width='2.4'/><path d='M9 16h14M16 9c3.2 3.6 3.2 10.4 0 14M16 9c-3.2 3.6-3.2 10.4 0 14' stroke='white' stroke-width='1.6' fill='none'/></svg>">
 <link rel="stylesheet" href="assets/css/site.css">
 </head>
 <body>
@@ -23,11 +23,12 @@
     </a>
     <nav class="seg" id="seg" aria-label="Sections">
       <span class="seg-pill" aria-hidden="true"></span>
-      <a href="#/base"       data-route="base">Base</a>
-      <a href="#/strategies" data-route="strategies">Strategies</a>
-      <a href="#/signals"    data-route="signals">Signals</a>
-      <a href="#/atlas"      data-route="atlas">Atlas</a>
+      <a href="#/base"       data-route="base"       data-i18n="navBase">Base</a>
+      <a href="#/strategies" data-route="strategies" data-i18n="navStrategies">Strategies</a>
+      <a href="#/signals"    data-route="signals"    data-i18n="navSignals">Signals</a>
+      <a href="#/atlas"      data-route="atlas"      data-i18n="navAtlas">Atlas</a>
     </nav>
+    <div class="lang" data-lang-switch aria-label="Language / 语言" role="group"></div>
   </div>
 </header>
 
@@ -36,6 +37,7 @@
 <!-- ══════════════════ GATE ══════════════════ -->
 <section class="route" id="route-gate">
   <div class="gate">
+    <div class="lang gate-lang" data-lang-switch aria-label="Language / 语言" role="group"></div>
     <div class="gate-in">
       <div class="gate-head">
         <span class="gate-mark"><span class="mark-dot"></span><span data-fill="gate-eyebrow">—</span></span>
@@ -56,7 +58,7 @@
     <p class="t-lede" style="max-width:48ch;margin-top:1.1rem" data-fill="anna-lede">—</p>
     <div class="grid grid-3" style="margin-top:2.6rem" id="annaSlots"></div>
     <div class="hero-actions" style="margin-top:2.4rem">
-      <a class="btn btn-quiet" href="#/" data-goto="gate">Back to the front</a>
+      <a class="btn btn-quiet" href="#/" data-goto="gate" data-i18n="back">Back to the front</a>
     </div>
   </div>
 </section>
@@ -65,47 +67,49 @@
 <section class="route" id="route-base">
   <div class="wrap hero">
     <div class="t-label" data-fill="role">—</div>
-    <h1 style="margin-top:0.7rem">Markets are one<br>system, not twelve.</h1>
+    <h1 style="margin-top:0.7rem" data-i18n-html="heroTitle">Markets are one<br>system, not twelve.</h1>
     <p class="t-lede" data-fill="tagline">—</p>
     <div class="hero-actions">
-      <a class="btn" href="#/atlas" data-goto="atlas">Open the atlas</a>
-      <a class="btn btn-quiet" href="#/strategies" data-goto="strategies">See the strategy shelf</a>
+      <a class="btn" href="#/atlas" data-goto="atlas" data-i18n="heroAtlas">Open the atlas</a>
+      <a class="btn btn-quiet" href="#/strategies" data-goto="strategies" data-i18n="heroShelf">See the strategy shelf</a>
     </div>
     <div class="statbar" id="statbar"></div>
   </div>
 
   <div class="wrap section">
     <div class="section-head">
-      <h2>Three views of the same thing</h2>
-      <p class="t-body">Each section answers a different question about the same market. Start anywhere.</p>
+      <h2 data-i18n="threeTitle">Three views of the same thing</h2>
+      <p class="t-body" data-i18n="threeSub">Each section answers a different question about the same market. Start anywhere.</p>
     </div>
     <div class="grid grid-3">
       <article class="card pad tap reveal" data-goto="strategies" tabindex="0" role="link">
-        <div class="t-label">01 · Strategies</div>
-        <h3 class="t-head" style="margin:0.5rem 0 0.4rem">What I can build</h3>
-        <p class="t-body" style="margin:0;font-size:0.9375rem">Derivative and structured-product work written up honestly — the thesis, the mechanics, and the part that hurts when it goes wrong.</p>
+        <div class="t-label" data-i18n="c1Label">01 · Strategies</div>
+        <h3 class="t-head" style="margin:0.5rem 0 0.4rem" data-i18n="c1Head">What I can build</h3>
+        <p class="t-body" style="margin:0;font-size:0.9375rem" data-i18n="c1Body">Derivative and structured-product work written up honestly — the thesis, the mechanics, and the part that hurts when it goes wrong.</p>
       </article>
       <article class="card pad tap reveal" data-goto="signals" tabindex="0" role="link">
-        <div class="t-label">02 · Signals</div>
-        <h3 class="t-head" style="margin:0.5rem 0 0.4rem">How things move together</h3>
-        <p class="t-body" style="margin:0;font-size:0.9375rem">A cross-asset interaction grid plus a running log of what the world did and what it actually implies for positioning.</p>
+        <div class="t-label" data-i18n="c2Label">02 · Signals</div>
+        <h3 class="t-head" style="margin:0.5rem 0 0.4rem" data-i18n="c2Head">How things move together</h3>
+        <p class="t-body" style="margin:0;font-size:0.9375rem" data-i18n="c2Body">A cross-asset interaction grid plus a running log of what the world did and what it actually implies for positioning.</p>
       </article>
       <article class="card pad tap reveal" data-goto="atlas" tabindex="0" role="link">
-        <div class="t-label">03 · Atlas</div>
-        <h3 class="t-head" style="margin:0.5rem 0 0.4rem">Where the risk lives</h3>
-        <p class="t-body" style="margin:0;font-size:0.9375rem">Every major market on one map — cap, macro, sector mix and the five companies that dominate it.</p>
+        <div class="t-label" data-i18n="c3Label">03 · Atlas</div>
+        <h3 class="t-head" style="margin:0.5rem 0 0.4rem" data-i18n="c3Head">Where the risk lives</h3>
+        <p class="t-body" style="margin:0;font-size:0.9375rem" data-i18n="c3Body">Every major market on one map — cap, macro, sector mix and the five companies that dominate it.</p>
       </article>
     </div>
   </div>
 
   <div class="wrap section">
     <div class="card pad reveal">
-      <h2 class="t-title">How this is built</h2>
-      <p class="t-body" style="max-width:64ch">One static page, no framework, no backend. All content lives in a single data file, so adding a market or a strategy is one object, not a deploy pipeline. Motion is spring-driven and interruptible; everything respects reduced-motion, reduced-transparency and high-contrast settings.</p>
+      <h2 class="t-title" data-i18n="builtTitle">How this is built</h2>
+      <p class="t-body" style="max-width:64ch" data-i18n="builtBody">One static page, no framework, no backend. All content lives in a single data file, so adding a market or a strategy is one object, not a deploy pipeline. Motion is spring-driven and interruptible; everything respects reduced-motion, reduced-transparency and high-contrast settings.</p>
       <div class="strat-meta" style="margin-top:1rem">
-        <span class="chip">Vanilla JS</span><span class="chip">No build step</span>
-        <span class="chip">Static hosting</span><span class="chip">Light &amp; dark</span>
-        <span class="chip">Keyboard accessible</span>
+        <span class="chip" data-i18n="chipVanilla">Vanilla JS</span>
+        <span class="chip" data-i18n="chipNoBuild">No build step</span>
+        <span class="chip" data-i18n="chipStatic">Static hosting</span>
+        <span class="chip" data-i18n="chipFrost">Frost white</span>
+        <span class="chip" data-i18n="chipA11y">Keyboard accessible</span>
       </div>
     </div>
   </div>
@@ -115,17 +119,17 @@
 <section class="route" id="route-strategies">
   <div class="wrap section" style="padding-top:clamp(2rem,6vw,4rem)">
     <div class="section-head">
-      <div class="t-label">The shelf</div>
-      <h2 style="margin-top:0.5rem">Strategies, and where each one breaks</h2>
-      <p class="t-body">Every strategy here is written with its failure mode attached. A payoff you cannot describe losing money is a payoff you do not understand. Tap any card for the mechanics.</p>
+      <div class="t-label" data-i18n="shelfLabel">The shelf</div>
+      <h2 style="margin-top:0.5rem" data-i18n="shelfTitle">Strategies, and where each one breaks</h2>
+      <p class="t-body" data-i18n="shelfBody">Every strategy here is written with its failure mode attached. A payoff you cannot describe losing money is a payoff you do not understand. Tap any card for the mechanics.</p>
     </div>
     <div class="grid grid-2" id="stratGrid"></div>
   </div>
 
   <div class="wrap section" style="padding-top:0">
     <div class="card pad reveal">
-      <div class="t-label">Capability surface</div>
-      <h2 class="t-title" style="margin:0.5rem 0 1.4rem">What I actually work in</h2>
+      <div class="t-label" data-i18n="skillLabel">Capability surface</div>
+      <h2 class="t-title" style="margin:0.5rem 0 1.4rem" data-i18n="skillTitle">What I actually work in</h2>
       <div class="skillrow" id="skillList"></div>
     </div>
   </div>
@@ -135,9 +139,9 @@
 <section class="route" id="route-signals">
   <div class="wrap section" style="padding-top:clamp(2rem,6vw,4rem)">
     <div class="section-head">
-      <div class="t-label">Cross-asset interaction</div>
-      <h2 style="margin-top:0.5rem">The heat map</h2>
-      <p class="t-body">Correlation of daily returns across the assets that actually drive a multi-asset book. The number matters less than the sign changes — those mark regime shifts.</p>
+      <div class="t-label" data-i18n="xaLabel">Cross-asset interaction</div>
+      <h2 style="margin-top:0.5rem" data-i18n="xaTitle">The heat map</h2>
+      <p class="t-body" data-i18n="xaBody">Correlation of daily returns across the assets that actually drive a multi-asset book. The number matters less than the sign changes — those mark regime shifts.</p>
     </div>
 
     <div class="card pad reveal">
@@ -152,22 +156,22 @@
 
     <div class="grid grid-2" style="margin-top:1rem">
       <div class="card pad reveal">
-        <div class="t-label">What the grid is saying</div>
+        <div class="t-label" data-i18n="readsLabel">What the grid is saying</div>
         <ul id="heatReads" style="margin:0.8rem 0 0;padding-left:1.1rem"></ul>
       </div>
       <div class="card pad reveal">
-        <div class="t-label">How to read it</div>
-        <p class="t-body" style="font-size:0.9375rem">A correlation grid is a picture of what the market currently believes the shared risk factor is. When equity–rates flips sign, the driver has moved between growth and inflation. When credit stops confirming equity, the marginal buyer has changed. When everything converges toward one, diversification is gone precisely when it was needed.</p>
-        <p class="t-caption" style="margin-bottom:0">Seed values shown. Regenerate the matrix from your own price history with <code>tools/build_correlations.py</code>.</p>
+        <div class="t-label" data-i18n="howLabel">How to read it</div>
+        <p class="t-body" style="font-size:0.9375rem" data-i18n="howBody">A correlation grid is a picture of what the market currently believes the shared risk factor is. When equity–rates flips sign, the driver has moved between growth and inflation. When credit stops confirming equity, the marginal buyer has changed. When everything converges toward one, diversification is gone precisely when it was needed.</p>
+        <p class="t-caption" style="margin-bottom:0" data-i18n="howNote">Seed values shown. Regenerate the matrix from your own price history with tools/build_correlations.py.</p>
       </div>
     </div>
   </div>
 
   <div class="wrap section" style="padding-top:0">
     <div class="section-head">
-      <div class="t-label">Running log</div>
-      <h2 style="margin-top:0.5rem">World events, and what they change</h2>
-      <p class="t-body">Append-only. Each entry pairs what happened with the positioning consequence — the second part is the point.</p>
+      <div class="t-label" data-i18n="logLabel">Running log</div>
+      <h2 style="margin-top:0.5rem" data-i18n="logTitle">World events, and what they change</h2>
+      <p class="t-body" data-i18n="logBody">Append-only. Each entry pairs what happened with the positioning consequence — the second part is the point.</p>
     </div>
     <ul class="tl" id="eventList"></ul>
   </div>
@@ -177,9 +181,9 @@
 <section class="route" id="route-atlas">
   <div class="wrap section" style="padding-top:clamp(2rem,6vw,3rem)">
     <div class="section-head">
-      <div class="t-label">World atlas</div>
-      <h2 style="margin-top:0.5rem">Every market, one surface</h2>
-      <p class="t-body">Colour by any metric. Tap a country for its macro picture, the sector composition of its benchmark, and the five companies that dominate it. Drag to pan, scroll or pinch to zoom.</p>
+      <div class="t-label" data-i18n="atlasLabel">World atlas</div>
+      <h2 style="margin-top:0.5rem" data-i18n="atlasTitle">Every market, one surface</h2>
+      <p class="t-body" data-i18n="atlasBody">Colour by any metric. Tap a country for its macro picture, the sector composition of its benchmark, and the five companies that dominate it. Drag to pan, scroll or pinch to zoom.</p>
     </div>
 
     <div class="atlas-shell reveal">
@@ -211,7 +215,7 @@
   <div class="wrap foot-grid">
     <div>
       <div class="mark" style="margin-bottom:0.4rem"><span class="mark-dot"></span><span data-fill="owner">—</span></div>
-      <div class="t-caption">Snapshot as of <span data-fill="asof">—</span>. Personal research, not investment advice.</div>
+      <div class="t-caption" data-fill="footnote">—</div>
     </div>
     <div id="footLinks" class="t-caption"></div>
   </div>
@@ -223,8 +227,9 @@
   <div class="sheet-body" id="sheetBody"></div>
 </aside>
 
-<!-- Order matters: data → geometry → feature modules → shell (app.js boots last). -->
+<!-- Order matters: data → translations → geometry → feature modules → shell (app.js boots last). -->
 <script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
 <script src="assets/js/world.js"></script>
 <script src="assets/js/heat.js"></script>
 <script src="assets/js/atlas.js"></script>

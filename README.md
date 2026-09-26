@@ -40,7 +40,8 @@ neither. Add it if you later introduce either.
 ```
 index.html               the whole page (four hash routes)
 assets/css/site.css      design tokens + every style
-assets/js/data.js        ← ALL CONTENT LIVES HERE
+assets/js/data.js        ← ALL CONTENT LIVES HERE (English)
+assets/js/i18n.js        ← the Chinese layer (overrides only)
 assets/js/world.js       generated country geometry (do not hand-edit)
 assets/js/app.js         spring engine, routing, sheet, strategy + event render
 assets/js/atlas.js       map projection, colour buckets, pan/zoom, country sheet
@@ -103,6 +104,30 @@ Add a new one by adding an array of `[x, y]` points, `x` from 0 to 100 and
 One object at the **top** of `window.EVENTS`. `tone` is `""`, `"watch"` or
 `"risk"` and sets the dot colour. Keep the `read` field — the whole point of
 the log is the positioning consequence, not the headline.
+
+### Chinese
+`assets/js/i18n.js` is an **override map**, not a second copy of the site.
+`data.js` stays the English source of truth and is never touched by
+translation. Anything missing from `i18n.js` falls back to English rather than
+going blank — so a market or strategy you add to `data.js` keeps working, it
+just shows in English until you add its line here.
+
+| To translate | Add to |
+|---|---|
+| a country | `zh.countries.XXX` — same ISO-3 key as `data.js` |
+| a sector | `zh.sectors["Sector Name"]` |
+| a strategy | `zh.strategies.<id>` — the `id` field from `data.js` |
+| an event | `zh.events[n]` — `n` is its position in `window.EVENTS` |
+| a heat-map asset | `zh.heat.assets` and `zh.heat.short` |
+| interface text | `zh.ui.<key>` — the key is the `data-i18n="..."` in `index.html` |
+
+Money is converted, not relabelled: `$253bn` becomes `2,530亿美元` and
+`$8.70tn` becomes `8.70万亿美元` (`window.money` / `window.moneyTn` in
+`i18n.js`). Company names, tickers and index names stay Latin — that is
+normal in Chinese financial writing and safer than guessing.
+
+The chosen language is remembered per browser. On a first visit the site
+follows the browser's own locale, but only for an explicit Chinese one.
 
 ### Refreshing the correlation grid
 The shipped matrix is illustrative seed data. Replace it with your own:

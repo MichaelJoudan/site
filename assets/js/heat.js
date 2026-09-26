@@ -14,10 +14,12 @@
   const bucket = (v) => { let i = 0; while (i < EDGES.length && v > EDGES[i]) i++; return i; };
 
   // Short labels keep the header readable without a tooltip.
-  const shorten = (s) => s
+  const shortEn = (s) => s
     .replace("S&P 500", "SPX").replace("Nasdaq 100", "NDX").replace("MSCI EM", "EM")
     .replace("US 10y yield", "UST10y").replace("US 2y yield", "UST2y")
     .replace("HY credit", "HY").replace("USDJPY", "JPY");
+  const shorten = (s) => window.tm("heat.short", s, shortEn(s));
+  const full    = (s) => window.tm("heat.assets", s, s);
 
   function build() {
     const H = window.HEAT;
@@ -32,7 +34,7 @@
         const bg = cssVar(DIV[bucket(v)]);
         const txt = v.toFixed(2).replace("0.", ".").replace("-.", "−.");
         html += `<td class="${self ? "self" : ""}" style="background:${bg}"
-          title="${H.assets[i]} vs ${H.assets[j]}: ${v.toFixed(2)}">${self ? "" : txt}</td>`;
+          title="${full(H.assets[i])} / ${full(H.assets[j])}: ${v.toFixed(2)}">${self ? "" : txt}</td>`;
       }
       html += "</tr>";
     }
@@ -43,10 +45,10 @@
     const t = $("#heatTable");
     if (!t || !window.HEAT) return;
     t.innerHTML = build();
-    $("#heatWindow").textContent = window.HEAT.window;
+    $("#heatWindow").textContent = window.t("heat.window", window.HEAT.window);
     $("#heatLegend").innerHTML = DIV.map((v) => `<i style="background:${cssVar(v)}"></i>`).join("");
     const reads = $("#heatReads");
-    if (reads) reads.innerHTML = window.HEAT.reads
+    if (reads) reads.innerHTML = window.t("heat.reads", window.HEAT.reads)
       .map((r) => `<li class="t-body" style="margin-bottom:0.7rem">${r}</li>`).join("");
   };
 
