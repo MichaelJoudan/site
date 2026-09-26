@@ -98,6 +98,9 @@ window.I18N = {
       sheetQuality: "数据质量",
       sheetAsOf: "数据截至",
 
+      freshDataTo: "数据截至",
+      freshFetched: "抓取于",
+      freshProxy: "替代标的",
       freshUpdated: "更新于",
       freshDaysOld: "天前",
       freshSnapshot: "人工快照",

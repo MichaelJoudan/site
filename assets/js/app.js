@@ -195,14 +195,25 @@
        curated — never fetched, or not covered     → labelled as a snapshot
 
      A number is never silently presented as fresher than it is.            */
-  const STALE_DAYS = 5;                    // a long weekend plus a holiday
+  const STALE_DAYS = 5;    // the job runs every weekday — silence beyond this means it died
+  const LAG_DAYS   = 14;   // one series frozen while the rest keep moving
 
   const dayAge = (iso) => {
     if (!iso) return null;
-    const then = Date.parse(iso + "T00:00:00Z");
+    const then = Date.parse(String(iso).slice(0, 10) + "T00:00:00Z");
     return Number.isNaN(then) ? null : Math.floor((Date.now() - then) / 86400000);
   };
-  const stateFor = (age) => (age === null ? "live" : age > STALE_DAYS ? "stale" : "live");
+
+  /* Staleness is about PIPELINE HEALTH, not data lag.
+     A 60-day correlation whose last common date is a few days back is normal —
+     it is set by the slowest series in the basket, not by anything being wrong.
+     What actually warrants greying a number out is the job having stopped, or
+     one series freezing while the others carry on.                          */
+  const stateOf = (asof, jobAge) => {
+    if (jobAge !== null && jobAge > STALE_DAYS) return "stale";
+    const a = dayAge(asof);
+    return a !== null && a > LAG_DAYS ? "stale" : "live";
+  };
 
   window.FRESH = { heat: { state: "curated" }, ytd: {} };
 
@@ -210,41 +221,58 @@
     const M = window.MARKET;
     if (!M || typeof M !== "object") return;
 
+    const jobAge = dayAge(M.generated);
+
     if (M.heat && Array.isArray(M.heat.assets) && Array.isArray(M.heat.matrix)
         && M.heat.assets.length === M.heat.matrix.length) {
-      const age = dayAge(M.heat.asof);
       window.HEAT = Object.assign({}, window.HEAT, {
         assets: M.heat.assets, matrix: M.heat.matrix,
         window: M.heat.window || window.HEAT.window
       });
-      window.FRESH.heat = { state: stateFor(age), asof: M.heat.asof, age };
+      window.FRESH.heat = { state: stateOf(M.heat.asof, jobAge), asof: M.heat.asof,
+                            age: dayAge(M.heat.asof), ran: M.generated };
     }
 
     for (const iso in (M.ytd || {})) {
       const e = M.ytd[iso];
       if (!window.COUNTRIES[iso] || typeof e.v !== "number") continue;
-      const age = dayAge(e.asof);
       window.COUNTRIES[iso].ytd = e.v;      // stale values still show — greyed, not hidden
-      window.FRESH.ytd[iso] = { state: stateFor(age), asof: e.asof, age, src: e.src };
+      window.FRESH.ytd[iso] = {
+        state: stateOf(e.asof, jobAge), asof: e.asof, age: dayAge(e.asof),
+        src: e.src, proxy: e.proxy || null, ran: M.generated
+      };
     }
   }
 
   function fmtDay(iso) {
-    const d = new Date(iso + "T00:00:00Z");
+    const d = new Date(String(iso).slice(0, 10) + "T00:00:00Z");
     if (Number.isNaN(+d)) return iso;
     return d.toLocaleDateString(window.LANG === "zh" ? "zh-CN" : "en-GB",
       { day: "numeric", month: "short", timeZone: "UTC" });
   }
 
   /* One chip, used by the heat map, the atlas legend and the country sheet. */
-  window.freshChip = function (f) {
+  window.freshChip = function (f, opts) {
+    const showProxy = !(opts && opts.proxy === false);
+    const withProxy = (html) => html + ((showProxy && f && f.proxy)
+      ? `<span class="fresh is-proxy" title="${f.proxy}${f.src ? " · " + f.src : ""}">`
+        + `${t("ui.freshProxy", "proxy")}</span>` : "");
+
     if (!f || f.state === "curated")
       return `<span class="fresh is-curated">${t("ui.freshSnapshot", "Snapshot")} · ${asof()}</span>`;
+
     if (f.state === "stale")
-      return `<span class="fresh is-stale" title="${t("ui.freshStaleWhy", "The update job has not run — this figure is not current")}">`
-           + `${f.age} ${t("ui.freshDaysOld", "days old")}</span>`;
-    return `<span class="fresh is-live"><i aria-hidden="true"></i>`
-         + `${t("ui.freshUpdated", "Updated")} ${fmtDay(f.asof)}</span>`;
+      return withProxy(
+        `<span class="fresh is-stale" title="${t("ui.freshStaleWhy", "The update job has not run — this figure is not current")}">`
+        + `${f.age} ${t("ui.freshDaysOld", "days old")}</span>`);
+
+    const tip = [
+      f.ran ? `${t("ui.freshFetched", "Fetched")} ${fmtDay(f.ran)}` : "",
+      f.src || ""
+    ].filter(Boolean).join(" · ");
+    return withProxy(
+      `<span class="fresh is-live" title="${tip}"><i aria-hidden="true"></i>`
+      + `${t("ui.freshDataTo", "Data to")} ${fmtDay(f.asof)}</span>`);
   };
 
   /* ---------- Nav: spring-driven segmented pill ---------- */

@@ -65,12 +65,12 @@ HEAT_SERIES = [
     ("MSCI EM",      "price", [("stooq", "eem.us"), ("yahoo", "EEM")]),
     ("US 10y yield", "level", [("fred", "DGS10"), ("yahoo", "^TNX")]),
     ("US 2y yield",  "level", [("fred", "DGS2"), ("stooq", "2usy.b")]),
-    ("DXY",          "price", [("fred", "DTWEXBGS"), ("yahoo", "DX-Y.NYB")]),
+    ("DXY",          "price", [("yahoo", "DX-Y.NYB"), ("fred", "DTWEXBGS")]),
     ("Gold",         "price", [("stooq", "xauusd"), ("yahoo", "GC=F")]),
-    ("Brent",        "price", [("fred", "DCOILBRENTEU"), ("stooq", "cb.f"), ("yahoo", "BZ=F")]),
+    ("Brent",        "price", [("yahoo", "BZ=F"), ("fred", "DCOILBRENTEU")]),
     ("Copper",       "price", [("stooq", "hg.f"), ("yahoo", "HG=F")]),
     ("Bitcoin",      "price", [("stooq", "btcusd"), ("yahoo", "BTC-USD")]),
-    ("USDJPY",       "price", [("fred", "DEXJPUS"), ("stooq", "usdjpy"), ("yahoo", "JPY=X")]),
+    ("USDJPY",       "price", [("yahoo", "JPY=X"), ("fred", "DEXJPUS")]),
     ("VIX",          "level", [("fred", "VIXCLS"), ("stooq", "^vix"), ("yahoo", "^VIX")]),
     ("HY credit",    "price", [("stooq", "hyg.us"), ("yahoo", "HYG")]),
 ]
@@ -79,8 +79,9 @@ HEAT_SERIES = [
 # fails is reported and left curated. Fix a ticker here, not in data.js.
 INDEX_SERIES = {
     "USA": [("stooq", "^spx"), ("yahoo", "^GSPC")],
-    "CHN": [("yahoo", "000300.SS"), ("stooq", "^shc")],
-    "JPN": [("yahoo", "^TOPX"), ("stooq", "^nkx"), ("yahoo", "^N225")],
+    "CHN": [("yahoo", "510300.SS"), ("yahoo", "000300.SS"),
+            ("yahoo", "ASHR", "USD ETF proxy"), ("yahoo", "000001.SS", "Shanghai Composite")],
+    "JPN": [("yahoo", "1306.T", "TOPIX tracker"), ("yahoo", "^N225", "Nikkei 225")],
     "IND": [("yahoo", "^NSEI"), ("stooq", "^nsei")],
     "DEU": [("stooq", "^dax"), ("yahoo", "^GDAXI")],
     "GBR": [("stooq", "^ukx"), ("yahoo", "^FTSE")],
@@ -94,16 +95,16 @@ INDEX_SERIES = {
     "MEX": [("yahoo", "^MXX"), ("stooq", "^mex")],
     "IDN": [("yahoo", "^JKSE"), ("stooq", "^jci")],
     "NLD": [("yahoo", "^AEX"), ("stooq", "^aex")],
-    "SAU": [("yahoo", "^TASI.SR")],
+    "SAU": [("yahoo", "^TASI.SR"), ("yahoo", "KSA", "MSCI Saudi ETF proxy")],
     "CHE": [("yahoo", "^SSMI"), ("stooq", "^smi")],
     "TWN": [("yahoo", "^TWII"), ("stooq", "^twse")],
     "TUR": [("yahoo", "XU100.IS"), ("stooq", "^xu100")],
     "SGP": [("yahoo", "^STI"), ("stooq", "^sti")],
     "HKG": [("yahoo", "^HSI"), ("stooq", "^hsi")],
     "SWE": [("yahoo", "^OMX"), ("stooq", "^omxs30")],
-    "POL": [("yahoo", "WIG20.WA"), ("stooq", "^wig20")],
+    "POL": [("yahoo", "WIG20.WA"), ("yahoo", "EPOL", "USD ETF proxy — includes PLN move")],
     "ZAF": [("yahoo", "^J200.JO")],
-    "ARE": [("yahoo", "^ADI")],
+    "ARE": [("yahoo", "UAE", "MSCI UAE ETF proxy"), ("yahoo", "^ADI")],
 }
 
 
@@ -179,19 +180,30 @@ def from_yahoo(symbol: str) -> dict[date, float]:
 FETCHERS = {"stooq": from_stooq, "fred": from_fred, "yahoo": from_yahoo}
 
 
-def fetch(sources: list[tuple[str, str]], label: str, log: list[str]):
-    """Try each source in order. Returns (series, "provider:symbol") or (None, None)."""
-    for provider, symbol in sources:
+def fetch(sources, label: str, log: list[str]):
+    """Try each source in order.
+
+    A source may carry a third element: a note saying the instrument is not the
+    index data.js names (an ETF, a different benchmark). That note travels all
+    the way to the page, so a substituted number is never shown as if it were
+    the real thing.
+
+    Returns (series, "provider:symbol", note_or_None).
+    """
+    for entry in sources:
+        provider, symbol = entry[0], entry[1]
+        note = entry[2] if len(entry) > 2 else None
         try:
             series = FETCHERS[provider](symbol)
-            log.append(f"  OK    {label:<14} {provider}:{symbol}  ({len(series)} obs, "
+            log.append(f"  OK    {label:<14} {provider}:{symbol}"
+                       f"{'  [' + note + ']' if note else ''}  ({len(series)} obs, "
                        f"latest {max(series)})")
-            return series, f"{provider}:{symbol}"
+            return series, f"{provider}:{symbol}", note
         except (urllib.error.URLError, urllib.error.HTTPError, ValueError,
                 KeyError, TypeError, json.JSONDecodeError, OSError) as e:
             log.append(f"  miss  {label:<14} {provider}:{symbol}  — {type(e).__name__}: {e}")
     log.append(f"  FAIL  {label:<14} no source returned data")
-    return None, None
+    return None, None, None
 
 
 # ---------------------------------------------------------------------------
@@ -277,7 +289,7 @@ def main() -> int:
     heat_src: dict[str, str] = {}
     for name, kind, sources in HEAT_SERIES:
         log.clear()
-        s, src = fetch(sources, name, log)
+        s, src, _ = fetch(sources, name, log)
         print("\n".join(log))
         if s:
             heat_series[name], heat_kinds[name], heat_src[name] = s, kind, src
@@ -296,7 +308,13 @@ def main() -> int:
                 "obs": obs,
                 "sources": heat_src,
             }
-            print(f"\nMatrix: {len(names)} assets, {obs} observations, as of {asof}")
+            lag = (date.today() - asof).days
+            print(f"\nMatrix: {len(names)} assets, {obs} observations, as of {asof} "
+                  f"({lag}d behind today — set by the slowest series)")
+            if lag > 4:
+                slowest = sorted(((max(v), k) for k, v in heat_series.items()))[:3]
+                print("  Slowest series holding the window back: "
+                      + ", ".join(f"{k} (to {d})" for d, k in slowest))
         except ValueError as e:
             print(f"\nMatrix skipped — {e}")
             failed.append("correlation matrix")
@@ -308,7 +326,7 @@ def main() -> int:
     ytd: dict[str, dict] = {}
     for iso, sources in INDEX_SERIES.items():
         log.clear()
-        s, src = fetch(sources, iso, log)
+        s, src, note = fetch(sources, iso, log)
         print("\n".join(log))
         if not s:
             failed.append(iso)
@@ -320,6 +338,8 @@ def main() -> int:
             continue
         v, asof = r
         ytd[iso] = {"v": v, "asof": asof.isoformat(), "src": src}
+        if note:
+            ytd[iso]["proxy"] = note
 
     payload = {
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),

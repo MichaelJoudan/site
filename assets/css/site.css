@@ -506,6 +506,11 @@ table.heat td.self { opacity: 0.3; }
 }
 .fresh.is-curated { color: var(--ink-3); }
 .fresh.is-count { font-variant-numeric: tabular-nums; }
+.fresh.is-proxy {
+  color: var(--accent); cursor: help;
+  background: color-mix(in oklab, var(--accent) 9%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 24%, transparent);
+}
 
 /* Stale data is shown, never hidden — but it stops looking authoritative. */
 .is-dim { opacity: 0.5; }

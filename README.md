@@ -149,21 +149,41 @@ GitHub Actions (weekdays 22:24 UTC ≈ 06:24 SGT)
 for as many of the 26 markets as have a working ticker. Market cap, sector
 weights and the top-5 companies have no free source and stay curated.
 
-**Three states, per number.** `app.js` computes an age from each `asof` date:
+**Three states, per number.**
 
 | State | Means | Shown as |
 |---|---|---|
-| live | fetched, ≤ 5 days old | green dot, "Updated 25 Sept" |
-| stale | fetched, but the job stopped | amber "20 days old", value greyed out |
+| live | the job is running | green dot, "Data to 18 Sept" |
+| stale | the job stopped, or this series froze | amber "20 days old", value greyed |
 | curated | never fetched, or no ticker | "Snapshot · August 2026" |
 
-Stale values are dimmed rather than hidden — you can still read them, they
-just stop looking authoritative. Change the threshold via `STALE_DAYS` in
-`app.js`.
+**Staleness measures pipeline health, not data lag.** A 60-day correlation
+whose last common date is a few days back is normal — the window is set by the
+slowest series in the basket, and several FRED series publish with a lag. What
+warrants greying a number out is the *job* having stopped (`STALE_DAYS`, 5) or
+one series freezing while the others keep moving (`LAG_DAYS`, 14). Both live in
+`app.js`. The chip shows the data date; hover for when the job last ran and
+which source won.
+
+Stale values are dimmed rather than hidden — you can still read them, they just
+stop looking authoritative.
+
+**Proxies are labelled.** Where no feed carries the index `data.js` names, a
+source entry can take a third element describing the substitute — an ETF, a
+different benchmark. That note reaches the page as a blue `proxy` chip with the
+detail on hover. Currently: Saudi Arabia and the UAE use MSCI country ETFs
+(both currencies are pegged to USD, so the distortion is small), Poland uses
+`EPOL` (**PLN floats, so this one includes the currency move** — the honest
+alternative is to delete the entry and leave Poland curated), and Japan uses a
+TOPIX tracker because `^TOPX` does not resolve.
 
 **Sources**, tried in order per series: FRED (keyless CSV, authoritative for
-yields, FX and the dollar index), Stooq (keyless CSV, broad index coverage),
-Yahoo's chart endpoint (widest coverage, least stable, last resort). A series
+yields and VIX), Stooq (keyless CSV), Yahoo's chart endpoint (widest coverage,
+least stable). In practice on GitHub's runners **Stooq has never won a race** —
+it appears to block cloud IPs — so Yahoo and FRED do all the work. Brent, DXY
+and USDJPY are deliberately taken from Yahoo *before* FRED: FRED is the better
+source but publishes those with up to a week's lag, and one laggy series drags
+the whole correlation window back. A series
 that fails everywhere is omitted from `market.js` entirely and falls back to
 curated. Partial data is the normal case, not an error.
 
