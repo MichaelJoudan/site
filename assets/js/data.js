@@ -1,14 +1,16 @@
 /* ============================================================
-   data.js — everything on this site is driven from this file.
-   Edit here, refresh, done. No build step.
+   data.js — content and reference data for the site.
 
-   HOW TO KEEP IT CURRENT
-   - meta.asof            : bump whenever you refresh figures.
-   - COUNTRIES            : add a market by adding one object, keyed by ISO-3.
-   - STRATEGIES           : your capability shelf. `payoff` names a shape
-                            drawn by app.js (see PAYOFFS there).
-   - HEAT.assets/matrix   : run tools/build_correlations.py to regenerate.
-   - EVENTS               : append at the top; keep the oldest at the bottom.
+   Curated figures live here. Automatically refreshed series arrive in
+   market.js and overlay these at runtime; anything not covered there falls
+   back to what is written below and is labelled as a snapshot.
+
+   MAINTENANCE
+   - meta.asof    : bump when reference data is refreshed.
+   - COUNTRIES    : one object per market, keyed by ISO-3.
+   - STRATEGIES   : one object per strategy. `payoff` names a shape in app.js.
+   - HEAT.reads   : commentary. Maintained by hand; does not auto-update.
+   - EVENTS       : newest first.
    ============================================================ */
 
 window.META = {
@@ -16,10 +18,11 @@ window.META = {
   role: "Portfolio Analyst",
   city: "Singapore",
   asof: "August 2026",
-  tagline: "A working intelligence base for multi-asset markets — how the pieces move, why they move together, and where the risk is priced wrong.",
-  email: "e0726176@u.nus.edu",            // add an address to turn on the Contact button
-  linkedin: "https://www.linkedin.com/in/xujiaheng/",         // full URL
-  github: "https://github.com/MichaelJoudan/"            // full URL
+  tagline: "Twenty-six equity markets, a correlation framework refreshed each session, "
+         + "and a documented library of derivative and structured-product strategies.",
+  email: "",            // an address here turns on the footer link
+  linkedin: "",         // full URL
+  github: ""            // full URL
 };
 
 /* ------------------------------------------------------------
@@ -39,13 +42,13 @@ window.PEOPLE = [
     name: "Jay",
     initials: "J",
     tone: "a",
-    role: "Multi-asset markets · Singapore",
-    // Deliberately no employer name — see the compliance note in the launch guide.
-    summary: "Derivatives, structured products, and the arithmetic of how much to hold. " +
-             "A working notebook rather than a portfolio: strategies with their failure modes attached, " +
-             "a cross-asset interaction grid, and every major market on one map.",
+    role: "Multi-asset research · Singapore",
+    // No employer name by design — see the compliance note in the launch guide.
+    summary: "Cross-asset research and derivative strategy documentation. Twenty-six equity "
+           + "markets, a rolling correlation framework, and a strategy library covering "
+           + "volatility, structured products and portfolio construction.",
     chips: ["Derivatives", "Structured products", "Cross-asset macro"],
-    cta: "Enter the intelligence base",
+    cta: "View research",
     route: "base",
     ready: true
   },
@@ -55,8 +58,8 @@ window.PEOPLE = [
     initials: "A",
     tone: "b",
     role: "Her half — being written",
-    summary: "This side of the site is hers, and she has not filled it in yet. " +
-             "The space, the layout and the words are all still open.",
+    summary: "This side of the site is hers, and she has not filled it in yet. "
+           + "The space, the layout and the words are all still open.",
     chips: [],
     cta: "Take a look anyway",
     route: "anna",
@@ -67,8 +70,7 @@ window.PEOPLE = [
 /* Anna's holding page.
    When she knows what she wants, this whole page is these four fields.
    Change the words, refresh, done. `slots` can be any number of
-   [heading, body] pairs — add or remove rows freely. When it outgrows a
-   placeholder, that is the point to have the page built properly. */
+   [heading, body] pairs — add or remove rows freely. */
 window.ANNA = {
   eyebrow: "Reserved",
   title: "Anna's half",
@@ -77,7 +79,35 @@ window.ANNA = {
     ["A first page", "Whatever she wants people to see first — an introduction, a piece of work, a single image."],
     ["Something she makes", "Writing, photographs, recipes, a project log. The layout follows the content, not the other way around."],
     ["A way to reach her", "Only if she wants one. A public page does not owe anyone an inbox."]
-  ],
+  ]
+};
+
+/* ------------------------------------------------------------
+   BACKDROP — optional photographic background.
+
+   Drop one or more images into assets/img/ and list them here. Two or more
+   images cross-fade slowly; one image drifts on its own. An empty list (or a
+   file that fails to load) leaves the plain colour wash in place, so the site
+   is never broken by a missing image.
+
+   opacity  1 means the photograph is the page — there is no white wash over
+            it. Legibility is carried entirely by the frosted panels the text
+            sits on, and every text element was measured against the darkest
+            representative pixel behind it: worst case 4.66:1 against the
+            4.5:1 WCAG AA threshold, primary ink never below 13.8:1. Swap the
+            photograph and that measurement no longer holds — re-check, or
+            drop opacity below 1 to reintroduce a wash.
+   cycle    seconds each image holds before the cross-fade begins.
+   blur     px of blur on the photograph. 0 keeps it sharp.
+   ------------------------------------------------------------ */
+window.BACKDROP = {
+  // Two framings of the same Lower Manhattan photograph, so the cross-fade
+  // has something to say. Shadows are lifted and saturation reduced in the
+  // files themselves; the CSS filter handles the rest.
+  images: ["assets/img/skyline-wide.jpg", "assets/img/skyline-close.jpg"],
+  opacity: 1,
+  cycle: 14,
+  blur: 0                        // px; the panels carry legibility, so the image stays sharp
 };
 
 /* ------------------------------------------------------------
@@ -213,76 +243,76 @@ window.METRICS = [
    payoff: one of the shapes drawn in app.js (PAYOFFS)
    ------------------------------------------------------------ */
 window.STRATEGIES = [
-  { id:"vrp", name:"Systematic VRP option writing", payoff:"short_put",
-    thesis:"Implied variance trades persistently above realised. The edge is real but it is compensation for tail risk — so the whole job is sizing, not signal.",
-    detail:"Short-dated index puts and put spreads written against a cash-collateralised sleeve. Entry is gated on the IV–RV spread percentile and the term-structure slope, not on a view. Positions are cut when the front of the curve inverts.",
-    metrics:[["Instrument","Index puts / put spreads"],["Horizon","7–45 DTE"],["Primary greek","Short vega, short gamma"],["Kill switch","VIX term structure inversion"]],
-    risks:"Path risk dominates. A 2-sigma gap through the short strike costs more than a year of premium if notional is set off average vol rather than stressed vol.",
+  { id:"vrp", name:"Systematic volatility risk premium", payoff:"short_put",
+    thesis:"Harvest the spread between implied and realised variance through short-dated index optionality, sized so that a tail event does not impair the mandate.",
+    detail:"Cash-collateralised short puts and put spreads on major indices, seven to forty-five days to expiry. Entry is conditioned on the percentile of the implied-realised spread and the slope of the volatility term structure rather than on a directional view. Positions are closed when the front of the curve inverts.",
+    metrics:[["Instrument","Index puts and put spreads"],["Tenor","7–45 days"],["Primary exposure","Short vega, short gamma"],["Exit condition","Term-structure inversion"]],
+    risks:"Path dependency dominates outcome dispersion. A two-standard-deviation gap through the short strike can exceed a year of collected premium where notional has been sized on average rather than stressed volatility.",
     tags:["Volatility","Backtested","Python"] },
 
-  { id:"autocall", name:"Autocallable & barrier reverse convertible valuation", payoff:"autocall",
-    thesis:"An autocallable is a short down-and-in put plus a short call on your own capital. Price the parts, then decide whether the coupon pays you for them.",
-    detail:"Monte Carlo under a local-vol / Heston surface with discrete observation dates, issuer funding spread, and correlation for worst-of baskets. Output is a fair coupon, the implied barrier probability and the distribution of holding period.",
-    metrics:[["Model","MC, discrete barriers"],["Inputs","Vol surface, corr, funding"],["Outputs","Fair coupon, P(knock-in)"],["Watch","Worst-of correlation"]],
-    risks:"Correlation is the hidden short. Worst-of baskets look diversified and behave like a single leveraged position when everything sells off together.",
-    tags:["Structured products","Monte Carlo","Pricing"] },
+  { id:"autocall", name:"Autocallable and barrier reverse convertible valuation", payoff:"autocall",
+    thesis:"Decompose issuer structures into their component exposures and establish whether the quoted coupon compensates for them.",
+    detail:"Monte Carlo valuation under a local-volatility or Heston surface, with discrete observation dates, issuer funding spread and constituent correlation for worst-of baskets. Outputs are a fair coupon, the implied knock-in probability and the distribution of holding period.",
+    metrics:[["Method","Monte Carlo, discrete barriers"],["Inputs","Volatility surface, correlation, funding"],["Outputs","Fair coupon, P(knock-in)"],["Key sensitivity","Worst-of correlation"]],
+    risks:"Correlation is the dominant unhedged exposure. Worst-of baskets present as diversified and behave as a single leveraged position in a broad drawdown.",
+    tags:["Structured products","Monte Carlo","Valuation"] },
 
-  { id:"overwrite", name:"Covered call & collar overlays", payoff:"covered_call",
-    thesis:"Selling the right tail to fund the left tail. Useful when a mandate needs income and can accept a capped upside — destructive when it cannot.",
-    detail:"Strike selection driven by skew rather than by a fixed delta, rolled on time decay rather than on price. Collars are sized so the put financing is neutral to slightly positive at the mandate's risk budget.",
-    metrics:[["Instrument","Single stock / index calls"],["Typical delta","15–25Δ"],["Roll","On theta, not on price"],["Use","Income & drawdown control"]],
-    risks:"Systematically caps compounding. Over a long horizon the opportunity cost in a trending market exceeds the premium collected.",
-    tags:["Overlay","Income","DPM"] },
+  { id:"overwrite", name:"Covered call and collar overlays", payoff:"covered_call",
+    thesis:"Generate contractual income and constrain drawdown on existing equity exposure where the mandate tolerates a capped upside.",
+    detail:"Strike selection is driven by observed skew rather than a fixed delta, and positions are rolled on time decay rather than on spot. Collars are sized so that put financing is neutral to marginally positive at the mandate's stated risk budget.",
+    metrics:[["Instrument","Single-stock and index calls"],["Typical delta","15–25Δ"],["Roll basis","Theta, not spot"],["Application","Income and drawdown control"]],
+    risks:"The structure systematically caps compounding. Across a multi-year trending market the foregone upside exceeds the premium collected.",
+    tags:["Overlay","Income","Discretionary mandates"] },
 
-  { id:"kelly", name:"Kelly & mean-variance position sizing", payoff:"kelly",
-    thesis:"Most portfolio damage is a sizing error wearing a signal's clothes. Fractional Kelly with a shrunk covariance matrix beats conviction.",
-    detail:"Expected-return inputs are shrunk toward a prior; the covariance matrix is Ledoit-Wolf shrunk before optimisation. Output is capped at half-Kelly and re-checked against a drawdown constraint.",
-    metrics:[["Method","Fractional Kelly + MVO"],["Covariance","Ledoit-Wolf shrinkage"],["Cap","0.5× Kelly"],["Constraint","Max drawdown budget"]],
-    risks:"Full Kelly on estimated parameters is close to ruinous. Every number in the optimiser is an estimate with a standard error nobody shows you.",
-    tags:["Quant","Risk","Allocation"] },
+  { id:"kelly", name:"Kelly and mean-variance position sizing", payoff:"kelly",
+    thesis:"Determine position size from estimated edge and estimation error rather than from conviction.",
+    detail:"Expected returns are shrunk toward a prior and the covariance matrix is Ledoit-Wolf shrunk before optimisation. Output is capped at half-Kelly and tested against an explicit maximum-drawdown constraint.",
+    metrics:[["Method","Fractional Kelly with mean-variance"],["Covariance","Ledoit-Wolf shrinkage"],["Cap","0.5× Kelly"],["Constraint","Drawdown budget"]],
+    risks:"Full Kelly applied to estimated parameters approaches ruin. Every input is an estimate carrying a standard error that the optimiser does not report.",
+    tags:["Quantitative","Risk","Allocation"] },
 
-  { id:"dispersion", name:"Dispersion & correlation trades", payoff:"dispersion",
-    thesis:"Index vol is cheap relative to the components when correlation is priced high. The trade is long single-name vol, short index vol.",
-    detail:"Implied correlation is backed out from index and constituent surfaces; the position is entered when it sits in the upper decile of its trailing distribution and vega is matched, not notional-matched.",
-    metrics:[["Structure","Long component / short index vega"],["Signal","Implied correlation percentile"],["Balance","Vega-neutral"],["Risk","Correlation spike"]],
-    risks:"Correlation goes to one exactly when you need it not to. This trade is short the crisis.",
+  { id:"dispersion", name:"Dispersion and implied correlation", payoff:"dispersion",
+    thesis:"Express a view on implied correlation by trading index volatility against the volatility of its constituents.",
+    detail:"Implied correlation is inferred from the index and single-name surfaces. Positions are entered when it sits in the upper decile of its trailing distribution, and are balanced on vega rather than notional.",
+    metrics:[["Structure","Long constituent vega, short index vega"],["Signal","Implied correlation percentile"],["Balance","Vega neutral"],["Key risk","Correlation shock"]],
+    risks:"The position is short a correlation shock. Realised correlation converges toward one precisely in the drawdowns the wider book is already exposed to.",
     tags:["Volatility","Relative value"] },
 
-  { id:"carry", name:"Cross-asset carry & term-structure work", payoff:"carry",
-    thesis:"Carry is a risk premium and a positioning signal at the same time. Reading it across FX, rates and commodities is how you spot crowding.",
-    detail:"Curve shape, roll yield and forward-implied moves compared across markets to find where the market is paying to hold a position and where it is paying to avoid one.",
-    metrics:[["Assets","FX, rates, commodities"],["Signal","Roll yield & curve slope"],["Use","Crowding & regime detection"],["Pair with","Vol screen"]],
-    risks:"Carry trades die in crowded unwinds, not in slow reversals. Position data matters more than the carry number itself.",
+  { id:"carry", name:"Cross-asset carry and term structure", payoff:"carry",
+    thesis:"Identify where the market is paying to hold exposure, and where that payment reflects crowding rather than risk premium.",
+    detail:"Curve shape, roll yield and forward-implied moves are compared across FX, rates and commodities. Signals are read alongside positioning data rather than in isolation.",
+    metrics:[["Asset classes","FX, rates, commodities"],["Signal","Roll yield and curve slope"],["Application","Crowding and regime detection"],["Read with","Volatility screen"]],
+    risks:"Carry positions unwind through crowded exits rather than gradual reversals. Positioning data is more informative than the level of carry itself.",
     tags:["Macro","FX","Rates"] },
 
   { id:"valuation", name:"Global equity valuation framework", payoff:"valuation",
-    thesis:"Cross-regional valuation only means something after adjusting for sector mix, accounting and cost of equity. Otherwise you are comparing a bank index to a semiconductor index.",
-    detail:"Sector-neutral multiples, an implied equity risk premium from a reverse DCF, and a cost-of-equity build from the local risk-free rate. Screens run to region × sector, then down to name.",
-    metrics:[["Method","Sector-neutral + reverse DCF"],["Coverage","Developed & major EM"],["Output","Implied ERP by region"],["Cadence","Quarterly refresh"]],
-    risks:"Cheapness is a statement about expectations, not about outcomes. Value screens hold their worst positions the longest.",
+    thesis:"Compare equity valuation across regions on a basis that survives differences in sector composition, accounting convention and cost of equity.",
+    detail:"Sector-neutral multiples, an implied equity risk premium derived from a reverse DCF, and a cost-of-equity build from the local risk-free rate. Screens resolve to region, then sector, then security.",
+    metrics:[["Method","Sector-neutral with reverse DCF"],["Coverage","Developed and major emerging"],["Output","Implied ERP by region"],["Cadence","Quarterly"]],
+    risks:"Valuation describes expectations rather than outcomes. Screens constructed this way hold their worst positions longest.",
     tags:["Fundamental","Research"] },
 
-  { id:"reporting", name:"Mandate reporting & attribution", payoff:"attrib",
-    thesis:"A performance number nobody can decompose is a number nobody trusts. Attribution is a communication tool before it is an analytical one.",
-    detail:"Brinson-style allocation / selection split across the discretionary sleeves, reconciled to custodian data before anything reaches a client page.",
-    metrics:[["Frame","Allocation vs selection"],["Sleeves","Growth / Balanced / Income"],["Reconciled to","Custodian records"],["Output","Client-facing overview"]],
-    risks:"Attribution that does not reconcile to custody is a story, not a result.",
-    tags:["DPM","Client reporting"] }
+  { id:"reporting", name:"Mandate reporting and attribution", payoff:"attrib",
+    thesis:"Produce mandate performance that can be decomposed by source and reconciled to an independent record.",
+    detail:"Brinson allocation and selection attribution across the discretionary sleeves, reconciled to custodian records before any figure is distributed.",
+    metrics:[["Framework","Allocation versus selection"],["Sleeves","Growth, Balanced, Income"],["Reconciled to","Custodian records"],["Output","Client performance overview"]],
+    risks:"Attribution that does not reconcile to custody is narrative rather than result.",
+    tags:["Discretionary mandates","Client reporting"] }
 ];
 
 window.SKILLS = [
-  ["Derivatives & volatility", 92, "Options pricing, greeks, surface work, VRP strategy design"],
-  ["Structured products", 90, "Autocallables, BRCs, FCNs — decomposition, pricing, term-sheet review"],
-  ["Quantitative portfolio construction", 85, "Kelly sizing, mean-variance, shrinkage, drawdown budgeting"],
-  ["Python & data tooling", 84, "pandas, NumPy, backtesting, Monte Carlo, reporting automation"],
-  ["Macro & cross-asset research", 80, "Rates, FX, commodities, regime and correlation analysis"],
-  ["Bloomberg / Pine Script / Excel", 88, "Terminal workflows, custom indicators, model building"]
+  ["Derivatives and volatility", 92, "Option pricing, greeks, surface construction, volatility premium strategy design"],
+  ["Structured products", 90, "Autocallables, barrier reverse convertibles, fixed coupon notes: decomposition, valuation, term-sheet review"],
+  ["Quantitative portfolio construction", 85, "Kelly sizing, mean-variance optimisation, covariance shrinkage, drawdown budgeting"],
+  ["Python and data tooling", 84, "pandas, NumPy, backtesting, Monte Carlo, reporting automation"],
+  ["Macro and cross-asset research", 80, "Rates, FX, commodities, regime and correlation analysis"],
+  ["Bloomberg, Pine Script, Excel", 88, "Terminal workflows, custom indicators, valuation models"]
 ];
 
 /* ------------------------------------------------------------
-   HEAT — cross-asset interaction grid
-   Values are correlations of daily returns, illustrative seed data.
-   Regenerate from your own price history with tools/build_correlations.py.
+   HEAT — cross-asset correlation.
+   The matrix below is the fallback used before the daily job has run.
+   `reads` is commentary and is maintained by hand.
    ------------------------------------------------------------ */
 window.HEAT = {
   window: "60-day rolling, daily returns",
@@ -303,40 +333,41 @@ window.HEAT = {
     [ 0.79, 0.73, 0.68,-0.30,-0.24,-0.37, 0.12, 0.31, 0.46, 0.40, 0.14,-0.72, 1.00]
   ],
   reads: [
-    "Equity–rates has flipped sign twice this cycle. When the 10y correlation to the S&P turns positive, the market is trading inflation risk; when it is negative, it is trading growth risk.",
-    "Gold is doing two jobs at once — negatively correlated to real yields and positively correlated to EM equity. That is a debasement bid, not a fear bid.",
-    "Copper is the cleanest cross-check on the EM equity rally. If copper stops confirming, the rally is liquidity, not demand.",
-    "Credit and equity are moving together at 0.79. Credit stops confirming before equity does; it is the earlier warning of the two."
+    "Equity–rates correlation has changed sign twice in this cycle. A positive correlation between the 10-year and the S&P indicates the market is pricing inflation risk; a negative correlation indicates growth risk.",
+    "Gold is simultaneously negatively correlated to real yields and positively correlated to emerging-market equity. That combination is consistent with a debasement bid rather than a defensive one.",
+    "Copper remains the cleanest confirmation of the emerging-market equity rally. A divergence would indicate the move is liquidity-driven rather than demand-driven.",
+    "Credit and equity are moving together at 0.79. Credit has historically ceased to confirm before equity does, making it the earlier of the two signals."
   ]
 };
 
 /* ------------------------------------------------------------
-   EVENTS — the running log. Newest first.
+   EVENTS — dated commentary. Newest first.
    tone: "" | "watch" | "risk"
    ------------------------------------------------------------ */
 window.EVENTS = [
-  { date:"Aug 2026", tone:"", title:"Memory-cycle equity leadership goes global",
-    body:"KOSPI +64% and TAIEX +62% year-to-date against an S&P 500 up 12.9%. Korea's index is now ~50% Information Technology and Taiwan's ~74%. Both markets have effectively become one leveraged expression of the AI hardware cycle.",
-    read:"Country diversification is not sector diversification. An investor holding US, Korea and Taiwan owns one trade in three currencies." },
+  { date:"Aug 2026", tone:"", title:"Memory-cycle leadership broadens across Asia",
+    body:"KOSPI is up 64% and TAIEX 62% year to date, against 12.9% for the S&P 500. Information technology now represents approximately 50% of the Korean index and 74% of the Taiwanese. Both markets function as leveraged expressions of the same AI hardware cycle.",
+    read:"Country diversification does not deliver sector diversification. A book holding US, Korean and Taiwanese equity holds one exposure denominated in three currencies." },
 
-  { date:"Aug 2026", tone:"watch", title:"Japan's 10-year at 2.93% with policy at 1.00%",
-    body:"The long end has repriced well ahead of the policy rate as the BoJ normalises. Domestic financials are 19% of TOPIX and have led the index to +31%.",
-    read:"The yen carry trade's funding cost is no longer free. Watch cross-currency basis and JGB term premium before adding risk anywhere funded in yen." },
+  { date:"Aug 2026", tone:"watch", title:"Japanese long end repricing ahead of policy",
+    body:"The 10-year Japanese government bond yields 2.93% against a policy rate of 1.00%. The long end has moved well ahead of policy as the Bank of Japan normalises. Domestic financials represent 19% of TOPIX and have led the index to a 31% gain.",
+    read:"Yen funding is no longer costless. Cross-currency basis and JGB term premium warrant review before adding any yen-funded exposure." },
 
-  { date:"Aug 2026", tone:"risk", title:"Indonesia down 23.7% — a single-market EM dislocation",
-    body:"The IDX Composite is the worst major market of the year while broad EM is up. Financials are 47% of the index, so the drawdown is a domestic banking and currency story rather than a global risk-off one.",
-    read:"Idiosyncratic EM drawdowns inside a rising EM index are where forced-seller opportunities appear — and where value traps live. Separate the two on funding, not on multiples." },
+  { date:"Aug 2026", tone:"risk", title:"Indonesian equity dislocates from emerging-market beta",
+    body:"The IDX Composite is down 23.7% year to date while broad emerging-market equity is higher. Financials represent 47% of the index, locating the drawdown in domestic banking and currency rather than in global risk aversion.",
+    read:"Idiosyncratic drawdowns inside a rising index are where forced-seller opportunities and value traps coexist. The distinction is made on funding conditions, not on multiples." },
 
-  { date:"Aug 2026", tone:"watch", title:"Türkiye: +29.6% nominal, negative in real terms",
-    body:"BIST 100 up 29.6% with CPI at 31.75% and the policy rate at 37%. The nominal return is a currency illusion.",
-    read:"Any screen ranking markets on nominal local-currency return will put Türkiye near the top. Always deflate, or convert to a hard currency, before ranking." },
+  { date:"Aug 2026", tone:"watch", title:"Turkish equity: positive nominal, negative real",
+    body:"BIST 100 is up 29.6% against CPI of 31.75% and a policy rate of 37%. The nominal return is negative in real terms.",
+    read:"Any screen ranking markets on nominal local-currency return will place Türkiye near the top. Deflate, or convert to a hard currency, before ranking." },
 
-  { date:"Aug 2026", tone:"", title:"UK and US long ends both above 4.6%",
-    body:"Gilts at 5.05% and Treasuries at 4.68% with policy rates at 3.75% in both. Positively sloped curves with the term premium doing the work.",
-    read:"A positive term premium changes the discount rate on long-duration equity. Growth multiples and 30-year gilts are the same trade seen from two ends." }
+  { date:"Aug 2026", tone:"", title:"UK and US long ends above 4.6%",
+    body:"Gilts yield 5.05% and Treasuries 4.68%, against policy rates of 3.75% in both markets. Curves are positively sloped with term premium the dominant contributor.",
+    read:"A positive term premium raises the discount rate applied to long-duration equity. Growth multiples and 30-year gilts express the same exposure from opposite ends." }
 ];
 
-/* Small print shown under data-heavy sections. */
-window.DISCLAIMER = "Figures are a curated snapshot as of " + window.META.asof +
-  ", assembled from public sources for illustration and research. They are not investment advice, " +
-  "not a live feed, and not the views of any employer. Verify before relying on any number here.";
+/* Shown beneath data-heavy sections. */
+window.DISCLAIMER = "Figures combine automatically refreshed end-of-day series with manually "
+  + "maintained reference data, both drawn from public sources, as of " + window.META.asof + ". "
+  + "Provided for research and illustration only. Not investment advice, and not the views of "
+  + "any employer. Independent verification is required before use.";

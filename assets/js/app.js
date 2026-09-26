@@ -161,7 +161,8 @@
       role: t("meta.role", M.role) + " · " + t("meta.city", M.city),
       footnote: window.LANG === "zh"
         ? t("ui.footSnapshot", "") + asof() + t("ui.footRest", "")
-        : "Snapshot as of " + asof() + ". Personal research, not investment advice.",
+        : "Reference data as of " + asof() + ". Personal research; not investment advice, "
+          + "and not the views of any employer.",
       disclaimer: window.LANG === "zh"
         ? t("disclaimerParts.0", "") + asof() + t("disclaimerParts.1", "")
         : window.DISCLAIMER,
@@ -184,6 +185,57 @@
       links.innerHTML = L.join('<span class="t-caption"> · </span>') ||
         `<span class="t-caption">${t("ui.footLinksEmpty", "Add your links in assets/js/data.js")}</span>`;
     }
+  }
+
+  /* ---------- Photographic backdrop ---------------------------------
+     Reads window.BACKDROP. Images that fail to load are skipped; if none
+     load, the page keeps its plain colour wash and nothing is broken.
+     Two or more images cross-fade; one drifts on its own.             */
+  function initBackdrop() {
+    const cfg = window.BACKDROP || {};
+    const srcs = Array.isArray(cfg.images) ? cfg.images.filter(Boolean) : [];
+    const host = $("#backdrop");
+    if (!host || !srcs.length) return;
+
+    const root = document.documentElement;
+    root.style.setProperty("--photo-opacity", String(cfg.opacity ?? 0.18));
+    root.style.setProperty("--photo-blur", (cfg.blur ?? 2) + "px");
+
+    // Only images that actually load are used.
+    Promise.all(srcs.map((src) => new Promise((res) => {
+      const im = new Image();
+      im.onload = () => res(src);
+      im.onerror = () => res(null);
+      im.src = src;
+    }))).then((loaded) => {
+      const ok = loaded.filter(Boolean);
+      if (!ok.length) return;
+
+      document.body.classList.add("has-photo");
+      const layers = [0, 1].map((i) => {
+        const el = document.createElement("div");
+        el.className = "backdrop-layer";
+        el.style.animationDelay = (i * -26) + "s";   // desynchronise the drift
+        host.appendChild(el);
+        return el;
+      });
+
+      let i = 0, front = 0;
+      layers[0].style.backgroundImage = `url("${ok[0]}")`;
+      requestAnimationFrame(() => layers[0].classList.add("is-on"));
+      if (ok.length < 2 || REDUCED.matches) return;
+
+      const cycle = Math.max(6, Number(cfg.cycle) || 14) * 1000;
+      setInterval(() => {
+        if (document.hidden) return;               // no work in a background tab
+        i = (i + 1) % ok.length;
+        const next = 1 - front;
+        layers[next].style.backgroundImage = `url("${ok[i]}")`;
+        layers[next].classList.add("is-on");
+        layers[front].classList.remove("is-on");
+        front = next;
+      }, cycle);
+    });
   }
 
   /* ---------- Live market overlay -----------------------------------
@@ -543,9 +595,9 @@
 
     const rows = [
       [t("ui.statMarkets", "Markets covered"), entries.length, ""],
-      [t("ui.statMcap", "Market cap mapped"), cap, ""],
-      [t("ui.statBest", "Best index YTD"),  label(best)  + " +" + best[1].ytd.toFixed(0)  + "%", "pos"],
-      [t("ui.statWorst", "Worst index YTD"), label(worst) + " "  + worst[1].ytd.toFixed(0) + "%", "neg"],
+      [t("ui.statMcap", "Aggregate market cap"), cap, ""],
+      [t("ui.statBest", "Strongest index YTD"),  label(best)  + " +" + best[1].ytd.toFixed(0)  + "%", "pos"],
+      [t("ui.statWorst", "Weakest index YTD"), label(worst) + " "  + worst[1].ytd.toFixed(0) + "%", "neg"],
       [t("ui.statStrategies", "Strategies documented"), window.STRATEGIES.length, ""]
     ];
     $("#statbar").innerHTML = rows.map(([k, v, cls]) =>
@@ -578,7 +630,7 @@
       <div class="kv" style="margin:1.1rem 0">
         ${metrics.map(([k, v]) => `<div><div class="t-label">${k}</div><div class="v">${v}</div></div>`).join("")}
       </div>
-      <div class="t-label" style="margin-bottom:0.4rem">${t("ui.sheetHurts", "Where it hurts")}</div>
+      <div class="t-label" style="margin-bottom:0.4rem">${t("ui.sheetHurts", "Principal risks")}</div>
       <p class="t-body" style="margin-top:0">${S(s, "risks")}</p>
       <div class="strat-meta">${tags.map((x) => `<span class="chip">${x}</span>`).join("")}</div>`;
   }
@@ -612,7 +664,7 @@
   /* ---------- Events ---------- */
   function renderEvents() {
     const zh = t("events", null);
-    const readLabel = t("ui.logRead", "Read:");
+    const readLabel = t("ui.logRead", "Implication:");
     $("#eventList").innerHTML = window.EVENTS.map((ev, i) => {
       const e = (zh && zh[i]) || ev;
       return `<li data-tone="${ev.tone}" class="reveal">
@@ -646,6 +698,7 @@
 
   /* ---------- Boot ---------- */
   function boot() {
+    initBackdrop();
     applyMarket();          // overlay live data before anything renders
     buildLangSwitches();
     renderAll();

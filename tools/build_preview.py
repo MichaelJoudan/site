@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Inline the whole site into one file (for an Artifact preview or an email attachment)."""
-import pathlib, re, sys
+import base64, pathlib, re, sys
 
 root = pathlib.Path(__file__).resolve().parent.parent
 html = (root / "index.html").read_text()
@@ -12,6 +12,21 @@ def js(m):
 
 html = re.sub(r'<link rel="stylesheet" href="([^"]+)">', css, html)
 html = re.sub(r'<script src="([^"]+)"></script>', js, html)
+
+# Backdrop images become data URIs, or the single-file build would have
+# nothing to load and would silently fall back to the plain colour wash.
+def inline_images(m):
+    body = m.group(0)
+    for rel in re.findall(r'"(assets/img/[^"]+\.(?:jpg|jpeg|png|webp))"', body):
+        f = root / rel
+        if not f.exists():
+            continue
+        mime = "image/png" if f.suffix == ".png" else ("image/webp" if f.suffix == ".webp" else "image/jpeg")
+        uri = "data:%s;base64,%s" % (mime, base64.b64encode(f.read_bytes()).decode())
+        body = body.replace('"%s"' % rel, '"%s"' % uri)
+    return body
+
+html = re.sub(r'window\.BACKDROP\s*=\s*\{.*?\n\};', inline_images, html, flags=re.S)
 
 out = root / "preview.html"
 if len(sys.argv) > 1 and sys.argv[1] == "--fragment":

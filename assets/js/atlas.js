@@ -283,7 +283,7 @@
   function show(iso, trigger) {
     const c = window.COUNTRIES[iso];
     const sec = SECTOR_ORDER.map((k) => [k, c.sectors[k] || 0]).sort((a, b) => b[1] - a[1]).filter((s) => s[1] > 0);
-    const confEn = { high: "Well sourced", medium: "Partly estimated", low: "Treat with care" };
+    const confEn = { high: "Sourced", medium: "Partly estimated", low: "Low confidence" };
     const conf = window.tm("conf", c.conf, confEn[c.conf] || "");
     const note = window.tm("countryNotes", iso, c.note);
     const K = (k, en) => window.t("ui." + k, en);

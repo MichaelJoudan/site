@@ -143,6 +143,117 @@ html[lang="zh-Hans"] table.heat th { font-weight: 600; }
 
 .wrap { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--gut); }
 
+/* ---------- Photographic backdrop --------------------------------
+   Optional. Configured in data.js → window.BACKDROP. With no images
+   listed, nothing renders here and the colour wash below stands alone.
+
+   Legibility is enforced structurally, not by taste: the photograph is
+   desaturated and blurred, held at low opacity, and covered by a scrim
+   that is heaviest exactly where the chrome and the reading column sit.
+   Frosted panels then sit on top of all of it.                        */
+.backdrop { position: fixed; inset: 0; z-index: -3; overflow: hidden; pointer-events: none; }
+
+.backdrop-layer {
+  position: absolute; inset: -6%;
+  background-size: cover; background-position: center 45%;
+  filter: blur(var(--photo-blur, 2px)) saturate(0.55) contrast(0.88) brightness(1.06);
+  opacity: 0;
+  transition: opacity 2.6s cubic-bezier(.4,0,.2,1);
+  will-change: opacity, transform;
+  animation: photoDrift 52s ease-in-out infinite alternate;
+}
+.backdrop-layer.is-on { opacity: var(--photo-opacity, 0.18); }
+
+/* A slow dolly, not a zoom. One cycle per 52s sits well below the
+   0.2 Hz band that reads as pulsing. */
+@keyframes photoDrift {
+  from { transform: scale(1.05) translate3d(-1.2%, 0.6%, 0); }
+  to   { transform: scale(1.13) translate3d(1.2%, -0.9%, 0); }
+}
+
+/* No scrim. Legibility is carried by the panels, not by washing the
+   photograph out. */
+
+/* The photograph replaces the colour wash rather than sitting under it. */
+body.has-photo .field { display: none; }
+
+/* ---------- Materials over a photograph ---------------------------
+   A 62%-white panel reads as glass over a pale wash and as mid-grey over
+   a dusk photograph, which would take dark text below AA. With an image
+   behind, every surface becomes markedly more opaque and every shadow
+   deepens, so panels separate from the city rather than dissolving into
+   it. The tokens change; no component needs to know.                  */
+body.has-photo {
+  --frost:        rgba(255,255,255,0.90);
+  --frost-strong: rgba(255,255,255,0.96);
+  --frost-thin:   rgba(255,255,255,0.86);
+  --solid:        #ffffff;
+  --sunk:         rgba(14,20,32,0.05);
+  --hairline:      rgba(14,22,40,0.16);
+  --hairline-soft: rgba(14,22,40,0.10);
+  --shadow-1: 0 1px 2px rgba(8,14,28,.10), 0 8px 22px rgba(8,14,28,.14);
+  --shadow-2: 0 2px 6px rgba(8,14,28,.12), 0 22px 50px rgba(8,14,28,.22);
+  --shadow-3: 0 3px 10px rgba(8,14,28,.16), 0 40px 90px rgba(8,14,28,.30);
+}
+
+/* ---------- Plate ------------------------------------------------
+   Any run of text that would otherwise sit directly on the photograph.
+   Without an image behind, a plate is invisible — the page looks exactly
+   as it did before. */
+.plate { border-radius: var(--r-lg); }
+body.has-photo .plate,
+body.has-photo .section-head,
+body.has-photo .tl,
+body.has-photo .gate-head,
+body.has-photo .atlas-note,
+body.has-photo .foot-inner {
+  background: var(--frost);
+  backdrop-filter: var(--blur-md); -webkit-backdrop-filter: var(--blur-md);
+  border: 1px solid var(--hairline-soft);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1), inset 0 1px 0 var(--edge);
+  padding: clamp(1.2rem, 2.6vw, 1.9rem);
+}
+body.has-photo .gate-head { padding: clamp(1.5rem, 3vw, 2.2rem); }
+body.has-photo .section-head { margin-bottom: 1.75rem; }
+body.has-photo .tl { padding-left: clamp(1.9rem, 3.4vw, 2.6rem); }
+body.has-photo .tl::before { left: calc(clamp(1.2rem, 2.6vw, 1.9rem) + 7px); }
+body.has-photo .tl li::before { box-shadow: 0 0 0 3px rgba(255,255,255,0.92); }
+body.has-photo .hero { padding-bottom: clamp(1.4rem, 3vw, 2.2rem); }
+body.has-photo .statbar { box-shadow: 0 0 0 1px var(--hairline-soft), var(--shadow-2); }
+
+/* The chrome is the one surface that always overlaps the image. */
+body.has-photo .chrome { background: rgba(255,255,255,0.90); }
+/* Measured: the two thinnest surfaces were the only ones that fell below
+   AA over the photograph. Both are lifted just far enough. */
+/* A chip is 26px tall. Translucency at that size reads as noise, not as
+   material, and it was the one element that would not clear AA over a
+   busy frame of the photograph. */
+body.has-photo .chip { background: #fff; }
+body.has-photo .door.is-quiet { background: rgba(255,255,255,0.84); }
+body.has-photo .door.is-quiet:hover { background: rgba(255,255,255,0.92); }
+body.has-photo footer.foot { border-top: 0; }
+
+/* ---------- The wash the glass sits on ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop-layer { animation: none; transition: none; }
+}
+/* Legibility outranks atmosphere: when either preference is set, the
+   photograph goes entirely. */
+@media (prefers-reduced-transparency: reduce) {
+  .backdrop { display: none; }
+  body.has-photo .field { display: block; opacity: 0.72; }
+  body.has-photo .plate, body.has-photo .section-head, body.has-photo .tl,
+  body.has-photo .gate-head, body.has-photo .atlas-note, body.has-photo .foot-inner {
+    background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+}
+@media (prefers-contrast: more) {
+  .backdrop { display: none; }
+  body.has-photo .field { display: block; opacity: 0.18; }
+}
+
 /* ---------- The wash the glass sits on ---------- */
 .field {
   position: fixed; inset: -10vmax; z-index: -1; pointer-events: none;
@@ -391,6 +502,11 @@ html[lang="zh-Hans"] table.heat th { font-weight: 600; }
 .door.is-quiet:hover { background: var(--frost); }
 
 .gate-foot { text-align: center; margin-top: clamp(1.6rem, 4vh, 2.4rem); }
+body.has-photo .gate-foot > span {
+  display: inline-block; padding: 0.4rem 0.9rem; border-radius: 999px;
+  background: var(--frost); backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm);
+  box-shadow: inset 0 0 0 1px var(--hairline-soft), var(--shadow-1);
+}
 
 /* Leaving the gate — the chosen door opens toward you, the rest recede.
    Coming back reverses the same path, so the space stays coherent. */
