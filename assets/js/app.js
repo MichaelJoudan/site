@@ -186,6 +186,67 @@
     }
   }
 
+  /* ---------- Live market overlay -----------------------------------
+     market.js (generated daily by tools/fetch_market.py) is an OVERLAY on
+     the curated figures in data.js. Three honest states per number:
+
+       live    — fetched, within STALE_DAYS        → shows its date
+       stale   — fetched, but the job stopped      → shown greyed, with its age
+       curated — never fetched, or not covered     → labelled as a snapshot
+
+     A number is never silently presented as fresher than it is.            */
+  const STALE_DAYS = 5;                    // a long weekend plus a holiday
+
+  const dayAge = (iso) => {
+    if (!iso) return null;
+    const then = Date.parse(iso + "T00:00:00Z");
+    return Number.isNaN(then) ? null : Math.floor((Date.now() - then) / 86400000);
+  };
+  const stateFor = (age) => (age === null ? "live" : age > STALE_DAYS ? "stale" : "live");
+
+  window.FRESH = { heat: { state: "curated" }, ytd: {} };
+
+  function applyMarket() {
+    const M = window.MARKET;
+    if (!M || typeof M !== "object") return;
+
+    if (M.heat && Array.isArray(M.heat.assets) && Array.isArray(M.heat.matrix)
+        && M.heat.assets.length === M.heat.matrix.length) {
+      const age = dayAge(M.heat.asof);
+      window.HEAT = Object.assign({}, window.HEAT, {
+        assets: M.heat.assets, matrix: M.heat.matrix,
+        window: M.heat.window || window.HEAT.window
+      });
+      window.FRESH.heat = { state: stateFor(age), asof: M.heat.asof, age };
+    }
+
+    for (const iso in (M.ytd || {})) {
+      const e = M.ytd[iso];
+      if (!window.COUNTRIES[iso] || typeof e.v !== "number") continue;
+      const age = dayAge(e.asof);
+      window.COUNTRIES[iso].ytd = e.v;      // stale values still show — greyed, not hidden
+      window.FRESH.ytd[iso] = { state: stateFor(age), asof: e.asof, age, src: e.src };
+    }
+  }
+
+  function fmtDay(iso) {
+    const d = new Date(iso + "T00:00:00Z");
+    if (Number.isNaN(+d)) return iso;
+    return d.toLocaleDateString(window.LANG === "zh" ? "zh-CN" : "en-GB",
+      { day: "numeric", month: "short", timeZone: "UTC" });
+  }
+
+  /* One chip, used by the heat map, the atlas legend and the country sheet. */
+  window.freshChip = function (f) {
+    if (!f || f.state === "curated")
+      return `<span class="fresh is-curated">${t("ui.freshSnapshot", "Snapshot")} · ${asof()}</span>`;
+    if (f.state === "stale")
+      return `<span class="fresh is-stale" title="${t("ui.freshStaleWhy", "The update job has not run — this figure is not current")}">`
+           + `${f.age} ${t("ui.freshDaysOld", "days old")}</span>`;
+    return `<span class="fresh is-live"><i aria-hidden="true"></i>`
+         + `${t("ui.freshUpdated", "Updated")} ${fmtDay(f.asof)}</span>`;
+  };
+
   /* ---------- Nav: spring-driven segmented pill ---------- */
   const seg = $("#seg"), pill = $(".seg-pill");
   const pillX = new Spring({ damping: 1.0, response: 0.34,
@@ -557,6 +618,7 @@
 
   /* ---------- Boot ---------- */
   function boot() {
+    applyMarket();          // overlay live data before anything renders
     buildLangSwitches();
     renderAll();
     window.initAtlas && window.initAtlas();

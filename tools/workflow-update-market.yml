@@ -1,0 +1,52 @@
+name: Update market data
+
+# Runs after the US close on weekdays: 22:24 UTC ≈ 06:24 the next morning in
+# Singapore. The odd minute is deliberate — minute :00 is the busiest slot on
+# GitHub's scheduler and jobs there get delayed.
+#
+# You can also run it by hand: Actions tab → "Update market data" → Run workflow.
+# Do that first, before trusting the schedule, and read the log.
+
+on:
+  schedule:
+    - cron: "24 22 * * 1-5"
+  workflow_dispatch:
+
+# The job commits back to the repository, so it needs write access.
+permissions:
+  contents: write
+
+concurrency:
+  group: market-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+        # No pip install step: fetch_market.py uses the standard library only.
+
+      - name: Fetch prices and rebuild the matrix
+        run: python3 tools/fetch_market.py --out assets/js/market.js
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name  "market-data bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/js/market.js
+          if git diff --staged --quiet; then
+            echo "No change in the data — nothing to commit."
+          else
+            git commit -m "Market data $(date -u +%Y-%m-%d)"
+            git push
+            echo "Committed and pushed. Pages will redeploy in under a minute."
+          fi

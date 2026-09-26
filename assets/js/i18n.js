@@ -96,7 +96,12 @@ window.I18N = {
       sheetCompanies: "最大上市公司",
       sheetNote: "注：",
       sheetQuality: "数据质量",
-      sheetAsOf: "数据截至"
+      sheetAsOf: "数据截至",
+
+      freshUpdated: "更新于",
+      freshDaysOld: "天前",
+      freshSnapshot: "人工快照",
+      freshStaleWhy: "更新任务未运行 —— 此数值并非最新"
     },
 
     meta: {

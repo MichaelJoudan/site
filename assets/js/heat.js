@@ -45,7 +45,11 @@
     const t = $("#heatTable");
     if (!t || !window.HEAT) return;
     t.innerHTML = build();
-    $("#heatWindow").textContent = window.t("heat.window", window.HEAT.window);
+    const f = (window.FRESH && window.FRESH.heat) || null;
+    t.classList.toggle("is-stale", !!f && f.state === "stale");
+    $("#heatWindow").innerHTML =
+      `<span>${window.t("heat.window", window.HEAT.window)}</span>` +
+      (window.freshChip ? window.freshChip(f) : "");
     $("#heatLegend").innerHTML = DIV.map((v) => `<i style="background:${cssVar(v)}"></i>`).join("");
     const reads = $("#heatReads");
     if (reads) reads.innerHTML = window.t("heat.reads", window.HEAT.reads)

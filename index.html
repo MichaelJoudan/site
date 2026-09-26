@@ -194,6 +194,7 @@
           <div class="t-label" id="legendLabel">—</div>
           <div class="swatches" id="legendSwatches" style="display:flex;border-radius:4px;overflow:hidden;margin:0.35rem 0 0.25rem"></div>
           <div class="t-caption num" id="legendRange">—</div>
+          <div id="legendFresh"></div>
         </div>
         <div class="map-zoom">
           <button class="icon-btn" id="zoomIn"    type="button" aria-label="Zoom in">＋</button>
@@ -227,8 +228,9 @@
   <div class="sheet-body" id="sheetBody"></div>
 </aside>
 
-<!-- Order matters: data → translations → geometry → feature modules → shell (app.js boots last). -->
+<!-- Order matters: data → live overlay → translations → geometry → features → shell (app.js boots last). -->
 <script src="assets/js/data.js"></script>
+<script src="assets/js/market.js"></script>
 <script src="assets/js/i18n.js"></script>
 <script src="assets/js/world.js"></script>
 <script src="assets/js/heat.js"></script>

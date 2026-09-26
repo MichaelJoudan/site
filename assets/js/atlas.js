@@ -129,6 +129,27 @@
     const vals = Object.values(window.COUNTRIES).map((c) => c[metric.key]).filter((v) => typeof v === "number");
     $("#legendRange").textContent = mFmt(metric, Math.min(...vals)) + "  →  " + mFmt(metric, Math.max(...vals));
     $("#legendLabel").textContent = mLabel(metric);
+
+    // Only the YTD column is fetched, so only it carries a freshness chip.
+    const lf = $("#legendFresh");
+    if (lf) {
+      if (metric.key !== "ytd" || !window.freshChip) { lf.innerHTML = ""; }
+      else {
+        const all = Object.keys(window.COUNTRIES)
+          .map((iso) => (window.FRESH.ytd || {})[iso])
+          .filter(Boolean);
+        const live = all.filter((f) => f.state === "live");
+        if (!all.length) lf.innerHTML = window.freshChip(null);
+        else {
+          // Report the oldest live reading — the honest summary of the set.
+          const worst = live.length
+            ? live.reduce((a, b) => ((b.age || 0) > (a.age || 0) ? b : a))
+            : all.reduce((a, b) => ((b.age || 0) > (a.age || 0) ? b : a));
+          lf.innerHTML = window.freshChip(worst) +
+            `<span class="fresh is-count">${live.length}/${Object.keys(window.COUNTRIES).length}</span>`;
+        }
+      }
+    }
   }
 
   /* ---------- View transform ---------- */
@@ -266,6 +287,7 @@
     const conf = window.tm("conf", c.conf, confEn[c.conf] || "");
     const note = window.tm("countryNotes", iso, c.note);
     const K = (k, en) => window.t("ui." + k, en);
+    const ytdF = (window.FRESH && window.FRESH.ytd) ? window.FRESH.ytd[iso] : null;
     const html = `
       <div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.9rem">
         <div style="flex:1">
@@ -276,7 +298,9 @@
       </div>
 
       <div class="kv" style="margin-bottom:1.2rem">
-        <div><div class="t-label">${kLabel("Index YTD")}</div><div class="v num ${c.ytd >= 0 ? "pos" : "neg"}">${(c.ytd >= 0 ? "+" : "") + c.ytd.toFixed(1)}%</div></div>
+        <div><div class="t-label">${kLabel("Index YTD")}</div>
+          <div class="v num ${c.ytd >= 0 ? "pos" : "neg"}${ytdF && ytdF.state === "stale" ? " is-dim" : ""}">${(c.ytd >= 0 ? "+" : "") + c.ytd.toFixed(1)}%</div>
+          ${window.freshChip ? window.freshChip(ytdF) : ""}</div>
         <div><div class="t-label">${kLabel("Market cap")}</div><div class="v num">${window.moneyTn(c.mcap)}</div></div>
         <div><div class="t-label">${kLabel("GDP")}</div><div class="v num">${window.moneyTn(c.gdp)}</div></div>
         <div><div class="t-label">${kLabel("GDP growth")}</div><div class="v num ${c.growth >= 0 ? "" : "neg"}">${(c.growth >= 0 ? "+" : "") + c.growth.toFixed(1)}%</div></div>

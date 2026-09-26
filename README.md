@@ -38,15 +38,18 @@ neither. Add it if you later introduce either.
 ## Files
 
 ```
+.github/workflows/update-market.yml   the daily data job
 index.html               the whole page (four hash routes)
 assets/css/site.css      design tokens + every style
 assets/js/data.js        ← ALL CONTENT LIVES HERE (English)
 assets/js/i18n.js        ← the Chinese layer (overrides only)
+assets/js/market.js      GENERATED daily by the workflow — never edit
 assets/js/world.js       generated country geometry (do not hand-edit)
 assets/js/app.js         spring engine, routing, sheet, strategy + event render
 assets/js/atlas.js       map projection, colour buckets, pan/zoom, country sheet
 assets/js/heat.js        correlation grid
-tools/build_correlations.py   CSV of prices → the heat-map matrix
+tools/fetch_market.py         the daily job: fetch → correlate → write market.js
+tools/build_correlations.py   manual alternative: your own CSV → the matrix
 tools/build_preview.py        inline everything into one shareable file
 .nojekyll                stops GitHub's Jekyll from eating the assets folder
 ```
@@ -128,6 +131,58 @@ normal in Chinese financial writing and safer than guessing.
 
 The chosen language is remembered per browser. On a first visit the site
 follows the browser's own locale, but only for an explicit Chinese one.
+
+### Live data
+
+`market.js` is an **overlay**, not a replacement. `data.js` stays the curated
+source of truth; anything the job fetches successfully sits on top of it.
+The site works identically with `market.js` missing, empty, or `null`.
+
+```
+GitHub Actions (weekdays 22:24 UTC ≈ 06:24 SGT)
+  → tools/fetch_market.py            standard library only, no pip step
+  → fetches daily closes, correlates → assets/js/market.js
+  → commits → Pages redeploys
+```
+
+**What it refreshes:** the 13×13 correlation matrix and the index YTD figure
+for as many of the 26 markets as have a working ticker. Market cap, sector
+weights and the top-5 companies have no free source and stay curated.
+
+**Three states, per number.** `app.js` computes an age from each `asof` date:
+
+| State | Means | Shown as |
+|---|---|---|
+| live | fetched, ≤ 5 days old | green dot, "Updated 25 Sept" |
+| stale | fetched, but the job stopped | amber "20 days old", value greyed out |
+| curated | never fetched, or no ticker | "Snapshot · August 2026" |
+
+Stale values are dimmed rather than hidden — you can still read them, they
+just stop looking authoritative. Change the threshold via `STALE_DAYS` in
+`app.js`.
+
+**Sources**, tried in order per series: FRED (keyless CSV, authoritative for
+yields, FX and the dollar index), Stooq (keyless CSV, broad index coverage),
+Yahoo's chart endpoint (widest coverage, least stable, last resort). A series
+that fails everywhere is omitted from `market.js` entirely and falls back to
+curated. Partial data is the normal case, not an error.
+
+**Fixing a ticker.** The script prints a per-symbol OK / miss / FAIL table in
+the Actions log. If a market never resolves, edit its entry in `INDEX_SERIES`
+or `HEAT_SERIES` at the top of `tools/fetch_market.py` — not `data.js`.
+
+**Run it by hand first:** Actions tab → *Update market data* → **Run workflow**.
+Read the log before trusting the schedule.
+
+    python3 tools/fetch_market.py --check    # same report locally, writes nothing
+
+**One repository setting it needs:** Settings → Actions → General → Workflow
+permissions must be **Read and write**. Without it the job runs, fetches
+correctly, and fails on the final `git push`.
+
+**The commentary does not auto-update.** `HEAT.reads` — the four "what the grid
+is saying" paragraphs — are your words in `data.js`. When the numbers move
+enough to contradict them, rewrite them. Nothing will warn you.
 
 ### Refreshing the correlation grid
 The shipped matrix is illustrative seed data. Replace it with your own:

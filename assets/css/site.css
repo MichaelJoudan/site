@@ -481,6 +481,43 @@ table.heat td.self { opacity: 0.3; }
 .legend .swatches { display: flex; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 1px var(--hairline-soft); }
 .legend .swatches i { width: 26px; height: 12px; display: block; }
 
+/* ---------- Freshness ---------------------------------------------
+   Three states, visually distinct at a glance: a live dot, a greyed
+   "N days old", or a neutral "snapshot" label for curated figures. */
+.fresh {
+  display: inline-flex; align-items: center; gap: 0.32rem;
+  padding: 0.16rem 0.5rem; border-radius: 999px;
+  font-size: 0.6875rem; font-weight: 580; letter-spacing: 0.01em;
+  white-space: nowrap; vertical-align: middle;
+  background: var(--frost-strong); color: var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--hairline-soft);
+}
+.fresh + .fresh { margin-left: 0.3rem; }
+.fresh.is-live { color: var(--pos); }
+.fresh.is-live > i {
+  width: 6px; height: 6px; border-radius: 999px; flex: none;
+  background: var(--pos); box-shadow: 0 0 0 2px color-mix(in oklab, var(--pos) 22%, transparent);
+}
+.fresh.is-stale {
+  color: var(--warn);
+  background: color-mix(in oklab, var(--warn) 10%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--warn) 28%, transparent);
+  cursor: help;
+}
+.fresh.is-curated { color: var(--ink-3); }
+.fresh.is-count { font-variant-numeric: tabular-nums; }
+
+/* Stale data is shown, never hidden — but it stops looking authoritative. */
+.is-dim { opacity: 0.5; }
+table.heat.is-stale td { opacity: 0.42; }
+table.heat.is-stale th { color: var(--ink-3); }
+
+#heatWindow { display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+#legendFresh { margin-top: 0.35rem; display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.kv .fresh { margin-top: 0.28rem; }
+
+@media (prefers-reduced-transparency: reduce) { .fresh { background: #fff; } }
+
 /* ---------- Timeline ---------- */
 .tl { list-style: none; margin: 0; padding: 0; position: relative; }
 .tl::before { content: ""; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 1px; background: var(--hairline); }
