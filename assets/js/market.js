@@ -1,9 +1,9 @@
 /* GENERATED FILE — do not edit by hand.
    Written by tools/fetch_market.py via .github/workflows/update-market.yml.
    Any edit here is overwritten on the next run. Curated fallbacks live in data.js.
-   Generated 2026-09-26T03:06Z. */
+   Generated 2026-09-29T02:03Z. */
 window.MARKET = {
- "generated": "2026-09-26T03:06Z",
+ "generated": "2026-09-29T02:03Z",
  "heat": {
   "window": "60-day rolling, daily returns",
   "assets": [
@@ -238,124 +238,124 @@ window.MARKET = {
  },
  "ytd": {
   "USA": {
-   "v": 13.1,
-   "asof": "2026-09-25",
+   "v": 12.2,
+   "asof": "2026-09-28",
    "src": "yahoo:^GSPC"
   },
   "CHN": {
-   "v": -5.0,
-   "asof": "2026-09-24",
+   "v": -7.1,
+   "asof": "2026-09-29",
    "src": "yahoo:510300.SS"
   },
   "JPN": {
-   "v": 20.2,
-   "asof": "2026-09-25",
+   "v": 18.8,
+   "asof": "2026-09-29",
    "src": "yahoo:1306.T",
    "proxy": "TOPIX tracker"
   },
   "IND": {
-   "v": -11.4,
-   "asof": "2026-09-25",
+   "v": -12.8,
+   "asof": "2026-09-28",
    "src": "yahoo:^NSEI"
   },
   "DEU": {
-   "v": 3.7,
-   "asof": "2026-09-25",
+   "v": 3.6,
+   "asof": "2026-09-28",
    "src": "yahoo:^GDAXI"
   },
   "GBR": {
-   "v": 7.7,
-   "asof": "2026-09-25",
+   "v": 7.6,
+   "asof": "2026-09-28",
    "src": "yahoo:^FTSE"
   },
   "FRA": {
    "v": -0.9,
-   "asof": "2026-09-25",
+   "asof": "2026-09-28",
    "src": "yahoo:^FCHI"
   },
   "ITA": {
-   "v": 15.4,
-   "asof": "2026-09-25",
+   "v": 15.2,
+   "asof": "2026-09-28",
    "src": "yahoo:FTSEMIB.MI"
   },
   "CAN": {
-   "v": 12.9,
-   "asof": "2026-09-25",
+   "v": 11.9,
+   "asof": "2026-09-28",
    "src": "yahoo:^GSPTSE"
   },
   "BRA": {
-   "v": 13.9,
-   "asof": "2026-09-25",
+   "v": 13.6,
+   "asof": "2026-09-28",
    "src": "yahoo:^BVSP"
   },
   "KOR": {
-   "v": 68.0,
-   "asof": "2026-09-23",
+   "v": 63.3,
+   "asof": "2026-09-29",
    "src": "yahoo:^KS11"
   },
   "AUS": {
-   "v": -0.6,
-   "asof": "2026-09-25",
+   "v": -0.4,
+   "asof": "2026-09-29",
    "src": "yahoo:^AXJO"
   },
   "ESP": {
-   "v": 13.8,
-   "asof": "2026-09-25",
+   "v": 13.2,
+   "asof": "2026-09-28",
    "src": "yahoo:^IBEX"
   },
   "MEX": {
-   "v": 1.1,
-   "asof": "2026-09-25",
+   "v": 1.0,
+   "asof": "2026-09-28",
    "src": "yahoo:^MXX"
   },
   "IDN": {
-   "v": -27.8,
-   "asof": "2026-09-25",
+   "v": -28.9,
+   "asof": "2026-09-28",
    "src": "yahoo:^JKSE"
   },
   "NLD": {
-   "v": 16.9,
-   "asof": "2026-09-25",
+   "v": 17.3,
+   "asof": "2026-09-28",
    "src": "yahoo:^AEX"
   },
   "CHE": {
    "v": 5.1,
-   "asof": "2026-09-25",
+   "asof": "2026-09-28",
    "src": "yahoo:^SSMI"
   },
   "TWN": {
    "v": 65.8,
-   "asof": "2026-09-24",
+   "asof": "2026-09-29",
    "src": "yahoo:^TWII"
   },
   "TUR": {
-   "v": 14.5,
-   "asof": "2026-09-25",
+   "v": 11.8,
+   "asof": "2026-09-28",
    "src": "yahoo:XU100.IS"
   },
   "SGP": {
-   "v": 22.9,
-   "asof": "2026-09-25",
+   "v": 23.1,
+   "asof": "2026-09-29",
    "src": "yahoo:^STI"
   },
   "HKG": {
-   "v": -4.4,
-   "asof": "2026-09-25",
+   "v": -4.2,
+   "asof": "2026-09-29",
    "src": "yahoo:^HSI"
   },
   "SWE": {
-   "v": 14.3,
-   "asof": "2026-09-25",
+   "v": 13.8,
+   "asof": "2026-09-28",
    "src": "yahoo:^OMX"
   },
   "ZAF": {
-   "v": -4.5,
-   "asof": "2026-09-25",
+   "v": -6.2,
+   "asof": "2026-09-28",
    "src": "yahoo:^J200.JO"
   },
   "ARE": {
-   "v": 5.9,
-   "asof": "2026-09-25",
+   "v": 5.6,
+   "asof": "2026-09-28",
    "src": "yahoo:UAE",
    "proxy": "MSCI UAE ETF proxy"
   }
