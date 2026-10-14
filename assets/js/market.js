@@ -1,9 +1,9 @@
 /* GENERATED FILE — do not edit by hand.
    Written by tools/fetch_market.py via .github/workflows/update-market.yml.
    Any edit here is overwritten on the next run. Curated fallbacks live in data.js.
-   Generated 2026-10-13T03:04Z. */
+   Generated 2026-10-14T01:16Z. */
 window.MARKET = {
- "generated": "2026-10-13T03:04Z",
+ "generated": "2026-10-14T01:16Z",
  "heat": {
   "window": "60-day rolling, daily returns",
   "assets": [
@@ -239,17 +239,17 @@ window.MARKET = {
  "ytd": {
   "USA": {
    "v": 14.0,
-   "asof": "2026-10-12",
+   "asof": "2026-10-13",
    "src": "yahoo:^GSPC"
   },
   "CHN": {
-   "v": -9.6,
-   "asof": "2026-10-13",
+   "v": -8.3,
+   "asof": "2026-10-12",
    "src": "yahoo:510300.SS"
   },
   "JPN": {
-   "v": 20.1,
-   "asof": "2026-10-13",
+   "v": 20.6,
+   "asof": "2026-10-14",
    "src": "yahoo:1306.T",
    "proxy": "TOPIX tracker"
   },
@@ -279,23 +279,23 @@ window.MARKET = {
    "src": "yahoo:FTSEMIB.MI"
   },
   "CAN": {
-   "v": 12.5,
-   "asof": "2026-10-09",
+   "v": 13.5,
+   "asof": "2026-10-13",
    "src": "yahoo:^GSPTSE"
   },
   "BRA": {
-   "v": 29.8,
-   "asof": "2026-10-09",
+   "v": 28.4,
+   "asof": "2026-10-13",
    "src": "yahoo:^BVSP"
   },
   "KOR": {
-   "v": 40.5,
-   "asof": "2026-10-13",
+   "v": 45.2,
+   "asof": "2026-10-14",
    "src": "yahoo:^KS11"
   },
   "AUS": {
-   "v": 0.6,
-   "asof": "2026-10-13",
+   "v": -0.1,
+   "asof": "2026-10-14",
    "src": "yahoo:^AXJO"
   },
   "ESP": {
@@ -304,13 +304,13 @@ window.MARKET = {
    "src": "yahoo:^IBEX"
   },
   "MEX": {
-   "v": 3.8,
-   "asof": "2026-10-12",
+   "v": 4.1,
+   "asof": "2026-10-13",
    "src": "yahoo:^MXX"
   },
   "IDN": {
-   "v": -32.0,
-   "asof": "2026-10-13",
+   "v": -31.3,
+   "asof": "2026-10-12",
    "src": "yahoo:^JKSE"
   },
   "NLD": {
@@ -324,8 +324,8 @@ window.MARKET = {
    "src": "yahoo:^SSMI"
   },
   "TWN": {
-   "v": 66.4,
-   "asof": "2026-10-13",
+   "v": 70.2,
+   "asof": "2026-10-12",
    "src": "yahoo:^TWII"
   },
   "TUR": {
@@ -334,13 +334,13 @@ window.MARKET = {
    "src": "yahoo:XU100.IS"
   },
   "SGP": {
-   "v": 16.7,
-   "asof": "2026-10-13",
+   "v": 16.8,
+   "asof": "2026-10-14",
    "src": "yahoo:^STI"
   },
   "HKG": {
-   "v": -6.2,
-   "asof": "2026-10-13",
+   "v": -5.3,
+   "asof": "2026-10-12",
    "src": "yahoo:^HSI"
   },
   "SWE": {
